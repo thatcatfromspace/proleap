@@ -168,6 +168,6 @@ cython_debug/
 
 .vscode/
 
-./proleap_backend/proleap_backend/apis/__pycache__ #TODO: Fox 
+./proleap_backend/proleap_backend/apis/__pycache__ #TODO: Fix to ignore
 
 **/__pycache__/
