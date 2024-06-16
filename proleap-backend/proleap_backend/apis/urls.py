@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 from .views import (
    UserListAPIView, UserDetailAPIView, SignInAPIView, BatchListCreateAPIView, 
-   BatchDetailAPIView
+   BatchDetailAPIView, UserBatchListCreateAPIView, UserBatchDetailAPIView
 )
 
 schema_view = get_schema_view(
@@ -37,5 +37,8 @@ urlpatterns = [
 
    path('batches/', BatchListCreateAPIView.as_view(), name='batch-list-create'),
    path('batches/<int:pk>/', BatchDetailAPIView.as_view(), name='batch-detail'),
+
+   path('userbatches/', UserBatchListCreateAPIView.as_view(), name='user-batch-list-create'),
+   path('userbatches/<int:pk>/', UserBatchDetailAPIView.as_view(), name='user-batch-detail'),
 
 ]
