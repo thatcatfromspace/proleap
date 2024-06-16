@@ -39,8 +39,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False) 
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     objects = UserManager()
 
@@ -49,3 +49,46 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+class Batch(models.Model):
+
+    name = models.CharField(null=False, max_length=48, blank=False)
+    year = models.PositiveIntegerField(blank=False, null=False)
+
+    start_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True)
+    total_activities = models.IntegerField(default=0)
+
+    organizer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="organizing_batch", null=True)
+    users = models.ManyToManyField(User, related_name="participating_batch", through="UserBatch")
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['name', 'year']
+
+    def __str__(self):
+        return f"{self.name} {self.year}"
+
+class Status(models.TextChoices):
+    NOT_ATTEMPTED = "NOT_ATTEMPTED", "not attempted"
+    IN_PROGRESS = "IN_PROGRESS", "in progress"
+    COMPLETED = "COMPLETED", "completed"
+
+class UserBatch(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True)
+
+    completed_activities = models.IntegerField(default=0)
+    is_completed = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    def __str__(self):
+        return f"B = {self.batch.id} U = {self.user.id}"
