@@ -4,7 +4,10 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
-from .views import UserListAPIView, UserDetailAPIView, SignInAPIView
+from .views import (
+   UserListAPIView, UserDetailAPIView, SignInAPIView, BatchListCreateAPIView, 
+   BatchDetailAPIView
+)
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -31,5 +34,8 @@ urlpatterns = [
 
    path('users/', UserListAPIView.as_view(), name='users'),
    path('users/<int:id>/', UserDetailAPIView.as_view(), name='users'),
+
+   path('batches/', BatchListCreateAPIView.as_view(), name='batch-list-create'),
+   path('batches/<int:pk>/', BatchDetailAPIView.as_view(), name='batch-detail'),
 
 ]
