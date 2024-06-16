@@ -42,8 +42,8 @@ Follow these steps to get the Django project up and running locally using Docker
    Open a new terminal window/tab and run Django migrations:
 
    ```bash
-   docker-compose exec proleap-backend-web python manage.py makemigrations
-   docker-compose exec proleap-backend-web python manage.py migrate
+   docker exec -it proleap-backend-web python manage.py makemigrations
+   docker exec -it proleap-backend-web python manage.py migrate
    ```
 
 5. **Create a superuser (if needed):**
