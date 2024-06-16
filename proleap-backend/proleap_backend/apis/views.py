@@ -174,7 +174,7 @@ class BatchListCreateAPIView(APIView):
 
     @swagger_auto_schema(
         operation_description="List all batches",
-        responses={200: BatchSerializer(many=True)}
+        responses={200: BatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
     )
     def get(self, request):
         try:
@@ -265,3 +265,101 @@ class BatchDetailAPIView(APIView):
             return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserBatchListCreateAPIView(APIView):
+
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all user batches",
+        responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            user_batches = UserBatch.objects.all()
+            serializer = UserBatchSerializer(user_batches, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new user batch",
+        request_body=UserBatchSerializer,
+        responses={201: UserBatchSerializer, 400: 'Invalid input'}
+    )
+    def post(self, request):
+        try:
+            serializer = UserBatchSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserBatchDetailAPIView(APIView):
+
+    permission_classes = [AllowAny] #Todo: Authenticate to ISauth
+
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a user batch by ID",
+        responses={
+            200: UserBatchSerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            user_batch = UserBatch.objects.get(pk=pk)
+            serializer = UserBatchSerializer(user_batch)
+            return Response(serializer.data)
+        except UserBatch.DoesNotExist:
+            return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update a user batch by ID",
+        request_body=UserBatchSerializer,
+        responses={
+            200: UserBatchSerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):
+        try:
+            user_batch = UserBatch.objects.get(pk=pk)
+            serializer = UserBatchSerializer(user_batch, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserBatch.DoesNotExist:
+            return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete a user batch by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            user_batch = UserBatch.objects.get(pk=pk)
+            user_batch.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except UserBatch.DoesNotExist:
+            return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
