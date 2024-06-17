@@ -84,8 +84,8 @@ class UserBatch(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True)
 
     completed_activities = models.IntegerField(default=0)
-    is_completed = models.BooleanField(default=False)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED)
+    is_completed = models.BooleanField(default=False) #FIXME: Field Not neccessary, redundant
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED) 
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -95,3 +95,47 @@ class UserBatch(models.Model):
 
     def __str__(self):
         return f"B = {self.batch.id} U = {self.user.id}"
+
+
+class Activity(models.Model):
+
+    name = models.CharField(max_length=128)
+    desc = models.CharField(max_length=256, blank=True, null=True)
+
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+
+    total_cards = models.IntegerField(default=0, null=False)
+    total_polling_cards = models.IntegerField(default=0, null=False) #TODO: Write a Trigger coz polling cards are created in runtime
+    to_be_shown = models.BooleanField(default=True) # Used for polling only
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    users = models.ManyToManyField("User", related_name="participating_activity", through="UserActivity")
+
+    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, related_name="activity", null=True)
+    sequence_no = models.IntegerField(default=1, null=False)
+
+    class Meta:
+        unique_together = ('batch', 'name', 'sequence_no')
+
+    def __str__(self) -> str:
+        return f"{self.batch} {self.name} {self.sequence_no}"
+    
+class UserActivity(models.Model):
+
+    activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    completed_cards = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    class Meta:
+        unique_together = ['activity', 'user']
+
+    def str(self):
+        return f"A = {self.activity.id} U = {self.user.id}"
