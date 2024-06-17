@@ -40,6 +40,6 @@ urlpatterns = [
 
    path('userbatches/', UserBatchListCreateAPIView.as_view(), name='user-batch-list-create'),
    path('userbatches/<int:pk>/', UserBatchDetailAPIView.as_view(), name='user-batch-detail'),
-   path('batches/<int:batch_id>/users/', BatchUserListAPIView.as_view(), name='batch-user-list'),
+   path('batches-users/', BatchUserListAPIView.as_view(), name='batch-user-list'),
 
 ]

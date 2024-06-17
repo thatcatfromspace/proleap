@@ -373,10 +373,50 @@ class BatchUserListAPIView(APIView):
         operation_description="List all users of a batch",
         responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
     )
-    def get(self, request, batch_id):
+    def get_users(self, request, batch_id):
         try:
             user_batches = UserBatch.objects.filter(batch_id=batch_id)
             serializer = UserBatchSerializer(user_batches, many=True)
             return Response(serializer.data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+    @swagger_auto_schema(
+        tags=['users'],
+        operation_description="List all batches of a user",
+        responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get_batches(self, request, user_id):
+        try:
+            user_batches = UserBatch.objects.filter(user_id=user_id)
+            serializer = UserBatchSerializer(user_batches, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        tags=['batches-users-list',],
+        manual_parameters=[
+            openapi.Parameter('batch_id', openapi.IN_QUERY, description="ID of the batch", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('user_id', openapi.IN_QUERY, description="ID of the user", type=openapi.TYPE_INTEGER)
+        ],
+        responses={
+            200: UserBatchSerializer(many=True), 
+            400: openapi.Response(description='Bad Request'), 
+            500: openapi.Response(description='Internal Server Error')
+        },
+        operation_description="List users of a batch or batches of a user based on the provided query parameter"
+    )
+    def get(self, request, *args, **kwargs):
+        batch_id = request.query_params.get('batch_id')
+        user_id = request.query_params.get('user_id')
+        
+        if batch_id and user_id:
+            return Response({'error': 'Only one of batch_id or user_id should be provided'}, status=status.HTTP_400_BAD_REQUEST)
+        elif not batch_id and not user_id:
+            return Response({'error': 'Either batch_id or user_id must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+        elif batch_id:
+            return self.get_users(request, batch_id)
+        elif user_id:
+            return self.get_batches(request, user_id)
