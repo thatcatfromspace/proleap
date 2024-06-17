@@ -9,10 +9,11 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import AccessToken, TokenError
 
-from .models import User, Batch, UserBatch, Activity, UserActivity
+from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard
 from .serializers import (
     UserSerializer, BatchSerializer, UserBatchSerializer, 
     ActivitySerializer, UserActivitySerializer,
+    CardSerializer, UserCardSerializer, 
 )
 
 class UserListAPIView(APIView):
@@ -621,3 +622,198 @@ class UserActivityDetailAPIView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
+class CardListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all cards",
+        responses={200: CardSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            cards = Card.objects.all()
+            serializer = CardSerializer(cards, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new card",
+        request_body=CardSerializer,
+        responses={
+            201: CardSerializer,
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = CardSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CardDetailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a card by ID",
+        responses={
+            200: CardSerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            card = Card.objects.get(pk=pk)
+            serializer = CardSerializer(card)
+            return Response(serializer.data)
+        except Card.DoesNotExist:
+            return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update an card by ID",
+        request_body=CardSerializer,
+        responses={
+            200: CardSerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):     #TODO: Upon update, shouldn't be able to change Batch FK
+        try:
+            card = Card.objects.get(pk=pk)
+            serializer = CardSerializer(card, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Card.DoesNotExist:
+            return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete an card by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            card = Card.objects.get(pk=pk)      #TODO: Mark all delete views as inactive=true, add a field
+            card.delete()       #TODO: Return the deleted object instead of None
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Card.DoesNotExist:
+            return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserCardListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all user card",
+        responses={200: UserCardSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            user_cards = UserCard.objects.all()
+            serializer = UserCardSerializer(user_cards, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new user card",
+        request_body=UserCardSerializer,
+        responses={
+            201: UserCardSerializer, 
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = UserCardSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserCardDetailAPIView(APIView):
+    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a user card by ID",
+        responses={
+            200: UserCardSerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            user_card = UserCard.objects.get(pk=pk)
+            serializer = UserCardSerializer(user_card)
+            return Response(serializer.data)
+        except UserCard.DoesNotExist:
+            return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update a user card by ID",
+        request_body=UserCardSerializer,
+        responses={
+            200: UserCardSerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):
+        try:
+            user_card = UserCard.objects.get(pk=pk)
+            serializer = UserCardSerializer(user_card, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserCard.DoesNotExist:
+            return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete a user card by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            user_card = UserCard.objects.get(pk=pk)
+            user_card.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except UserCard.DoesNotExist:
+            return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
