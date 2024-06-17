@@ -362,4 +362,21 @@ class UserBatchDetailAPIView(APIView):
             return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
+class BatchUserListAPIView(APIView):
+
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        tags=['batches'],
+        operation_description="List all users of a batch",
+        responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request, batch_id):
+        try:
+            user_batches = UserBatch.objects.filter(batch_id=batch_id)
+            serializer = UserBatchSerializer(user_batches, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

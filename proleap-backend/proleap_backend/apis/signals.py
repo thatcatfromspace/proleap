@@ -22,7 +22,7 @@ def update_status(sender, instance, created, **kwargs):
                 instance.status = Status.COMPLETED
                 instance.is_completed = True
 
-        # Check if status or is_completed fields are updated
+        # Check if completed_activitiies field is updated
         if kwargs.get('update_fields') is None or 'completed_activities' in kwargs['update_fields']:
             instance.save(update_fields=['status', 'is_completed'])
 
