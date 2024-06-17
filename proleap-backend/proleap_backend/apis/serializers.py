@@ -5,7 +5,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 
 
-from .models import (User, Batch, UserBatch, Status)
+from .models import (
+    User, Batch, UserBatch, Status,
+    Activity, UserActivity
+)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,3 +70,57 @@ class UserBatchSerializer(serializers.ModelSerializer):
             return instance
         except Exception as e:
             raise serializers.ValidationError(str(e))
+
+
+class ActivitySerializer(serializers.ModelSerializer):
+    # user_activities = UserActivitySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Activity
+        fields = ['id', 'name', 'desc', 'start_time', 'end_time',
+                  'total_cards', 'total_polling_cards', 'to_be_shown',
+                  'created_at', 'updated_at', 'batch', 'sequence_no',
+                ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user_activities']
+
+
+class UserActivitySerializer(serializers.ModelSerializer):
+    activity_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+
+    class Meta:
+        model = UserActivity
+        fields = ['id', 'activity_id', 'user_id', 'completed_cards', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        activity_id = validated_data.pop('activity_id')
+        user_id = validated_data.pop('user_id')
+
+        try:
+            user_activity, created = UserActivity.objects.update_or_create(
+                activity_id=activity_id,
+                user_id=user_id,
+                defaults={
+                    'completed_cards': validated_data.get('completed_cards', 0),
+                    'status': validated_data.get('status', Status.NOT_ATTEMPTED)
+                }
+            )
+            return user_activity
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+    def update(self, instance, validated_data):
+        # Exclude activity_id and user_id from validated_data to keep them immutable
+        validated_data.pop('activity_id', None) #TODO: Throw an error if not FKs arent't same
+        validated_data.pop('user_id', None)
+
+        instance.completed_cards = validated_data.get('completed_cards', instance.completed_cards)
+        instance.status = validated_data.get('status', instance.status)
+
+        try:
+            instance.save()
+            return instance
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+        
