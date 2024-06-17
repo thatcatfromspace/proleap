@@ -9,8 +9,11 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import AccessToken, TokenError
 
-from .models import User, Batch, UserBatch
-from .serializers import UserSerializer, BatchSerializer, UserBatchSerializer
+from .models import User, Batch, UserBatch, Activity, UserActivity
+from .serializers import (
+    UserSerializer, BatchSerializer, UserBatchSerializer, 
+    ActivitySerializer, UserActivitySerializer,
+)
 
 class UserListAPIView(APIView):
     def get_permissions(self):
@@ -420,3 +423,201 @@ class BatchUserListAPIView(APIView):
             return self.get_users(request, batch_id)
         elif user_id:
             return self.get_batches(request, user_id)
+        
+
+class ActivityListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all activities",
+        responses={200: ActivitySerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            activities = Activity.objects.all()
+            serializer = ActivitySerializer(activities, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new activity",
+        request_body=ActivitySerializer,
+        responses={
+            201: ActivitySerializer,
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = ActivitySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class ActivityDetailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a activity by ID",
+        responses={
+            200: ActivitySerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            activity = Activity.objects.get(pk=pk)
+            serializer = ActivitySerializer(activity)
+            return Response(serializer.data)
+        except Activity.DoesNotExist:
+            return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update an activity by ID",
+        request_body=ActivitySerializer,
+        responses={
+            200: ActivitySerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):     #TODO: Upon update, shouldn't be able to change Batch FK
+        try:
+            activity = Activity.objects.get(pk=pk)
+            serializer = ActivitySerializer(activity, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Activity.DoesNotExist:
+            return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete an activity by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            activity = Activity.objects.get(pk=pk)
+            activity.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Activity.DoesNotExist:
+            return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserActivityListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all user activities",
+        responses={200: UserActivitySerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            user_activities = UserActivity.objects.all()
+            serializer = UserActivitySerializer(user_activities, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new user activity",
+        request_body=UserActivitySerializer,
+        responses={
+            201: UserActivitySerializer, 
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = UserActivitySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class UserActivityDetailAPIView(APIView):
+    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a user activity by ID",
+        responses={
+            200: UserActivitySerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            user_activity = UserActivity.objects.get(pk=pk)
+            serializer = UserActivitySerializer(user_activity)
+            return Response(serializer.data)
+        except UserActivity.DoesNotExist:
+            return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update a user activity by ID",
+        request_body=UserActivitySerializer,
+        responses={
+            200: UserActivitySerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):
+        try:
+            user_activity = UserActivity.objects.get(pk=pk)
+            serializer = UserActivitySerializer(user_activity, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except UserActivity.DoesNotExist:
+            return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete a user activity by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            user_activity = UserActivity.objects.get(pk=pk)
+            user_activity.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except UserActivity.DoesNotExist:
+            return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
