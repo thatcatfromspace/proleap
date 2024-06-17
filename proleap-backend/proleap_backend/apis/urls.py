@@ -6,7 +6,8 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 from .views import (
    UserListAPIView, UserDetailAPIView, SignInAPIView, 
-   BatchListCreateAPIView, BatchDetailAPIView, UserBatchListCreateAPIView, UserBatchDetailAPIView, BatchUserListAPIView
+   BatchListCreateAPIView, BatchDetailAPIView, UserBatchListCreateAPIView, UserBatchDetailAPIView, BatchUserListAPIView,
+   ActivityListCreateAPIView, ActivityDetailAPIView, UserActivityListCreateAPIView, UserActivityDetailAPIView,
 )
 
 schema_view = get_schema_view(
@@ -32,14 +33,25 @@ urlpatterns = [
    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
    path('signin/', SignInAPIView.as_view(), name='auth'),
 
+   # URLs for User APIs
    path('users/', UserListAPIView.as_view(), name='users'),
    path('users/<int:id>/', UserDetailAPIView.as_view(), name='users'),
 
+   # URLs for Batch APIs
    path('batches/', BatchListCreateAPIView.as_view(), name='batch-list-create'),
    path('batches/<int:pk>/', BatchDetailAPIView.as_view(), name='batch-detail'),
 
+   # URLs for UserBatch APIs
    path('userbatches/', UserBatchListCreateAPIView.as_view(), name='user-batch-list-create'),
    path('userbatches/<int:pk>/', UserBatchDetailAPIView.as_view(), name='user-batch-detail'),
    path('batches-users/', BatchUserListAPIView.as_view(), name='batch-user-list'),
+
+   # URLs for Activity APIs
+   path('activities/', ActivityListCreateAPIView.as_view(), name='activity-list-create'),
+   path('activities/<int:pk>/', ActivityDetailAPIView.as_view(), name='activity-detail'),
+
+   # URLs for UserActivity APIs
+   path('user-activities/', UserActivityListCreateAPIView.as_view(), name='user-activity-list-create'),
+   path('user-activities/<int:pk>/', UserActivityDetailAPIView.as_view(), name='user-activity-detail'),
 
 ]
