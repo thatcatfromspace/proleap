@@ -151,7 +151,6 @@ class Card(models.Model):
     name = models.CharField(max_length=128)
     desc = models.CharField(max_length=256, blank=True, null=True)
     type = models.CharField(max_length=32, default=CardType.SURVEY_INPUT)
-
     total_questions = models.IntegerField(default=0)
 
     # Only for Polling 
@@ -171,7 +170,6 @@ class Card(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id}. {self.name}"
-    
 
 class UserCard(models.Model):
 

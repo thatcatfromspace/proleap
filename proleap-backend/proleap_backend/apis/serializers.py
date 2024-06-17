@@ -7,7 +7,8 @@ from rest_framework.exceptions import ValidationError
 
 from .models import (
     User, Batch, UserBatch, Status,
-    Activity, UserActivity
+    Activity, UserActivity,
+    Card, UserCard,
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -78,10 +79,10 @@ class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
         fields = ['id', 'name', 'desc', 'start_time', 'end_time',
-                  'total_cards', 'total_polling_cards', 'to_be_shown',
+                  'total_cards', 'total_polling_cards',
                   'created_at', 'updated_at', 'batch', 'sequence_no',
                 ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'user_activities']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class UserActivitySerializer(serializers.ModelSerializer):
@@ -116,6 +117,57 @@ class UserActivitySerializer(serializers.ModelSerializer):
         validated_data.pop('user_id', None)
 
         instance.completed_cards = validated_data.get('completed_cards', instance.completed_cards)
+        instance.status = validated_data.get('status', instance.status)
+
+        try:
+            instance.save()
+            return instance
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+
+class CardSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Card
+        fields = ['id', 'name', 'desc', 'type', 'to_be_shown', 'start_time', 'end_time', 'duration',
+                  'total_questions', 'created_at', 'updated_at', 'activity', 'sequence_no',
+                ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class UserCardSerializer(serializers.ModelSerializer):
+    card_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+
+    class Meta:
+        model = UserCard
+        fields = ['id', 'card_id', 'user_id', 'completed_questions', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        card_id = validated_data.pop('card_id')
+        user_id = validated_data.pop('user_id')
+
+        try:
+            user_card, created = UserCard.objects.update_or_create(
+                card_id=card_id,
+                user_id=user_id,
+                defaults={
+                    'completed_questions': validated_data.get('completed_questions', 0),
+                    'status': validated_data.get('status', Status.NOT_ATTEMPTED)
+                }
+            )
+            return user_card
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+
+    def update(self, instance, validated_data):
+        # Exclude card_id and user_id from validated_data to keep them immutable
+        validated_data.pop('card_id', None) #TODO: Throw an error if not FKs arent't same
+        validated_data.pop('user_id', None)
+
+        instance.completed_questions = validated_data.get('completed_questions', instance.completed_questions)
         instance.status = validated_data.get('status', instance.status)
 
         try:
