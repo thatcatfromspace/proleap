@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -56,8 +57,8 @@ class Batch(models.Model):
     name = models.CharField(null=False, max_length=48, blank=False)
     year = models.PositiveIntegerField(blank=False, null=False)
 
-    start_time = models.DateTimeField(null=True)
-    end_time = models.DateTimeField(null=True)
+    start_time = models.DateTimeField(null=True, blank=True) #TODO: Make null = False
+    end_time = models.DateTimeField(null=True, blank=True)
     total_activities = models.IntegerField(default=0)
 
     organizer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="organizing_batch", null=True)
@@ -75,9 +76,9 @@ class Batch(models.Model):
         return f"{self.name} {self.year}"
 
 class Status(models.TextChoices):
-    NOT_ATTEMPTED = "NOT_ATTEMPTED", "not attempted"
-    IN_PROGRESS = "IN_PROGRESS", "in progress"
-    COMPLETED = "COMPLETED", "completed"
+    NOT_ATTEMPTED = "NOT_ATTEMPTED", "Not Attempted"
+    IN_PROGRESS = "IN_PROGRESS", "In Progress"
+    COMPLETED = "COMPLETED", "Completed"
 
 class UserBatch(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -107,7 +108,6 @@ class Activity(models.Model):
 
     total_cards = models.IntegerField(default=0, null=False)
     total_polling_cards = models.IntegerField(default=0, null=False) #TODO: Write a Trigger coz polling cards are created in runtime
-    to_be_shown = models.BooleanField(default=True) # Used for polling only
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -139,3 +139,54 @@ class UserActivity(models.Model):
 
     def str(self):
         return f"A = {self.activity.id} U = {self.user.id}"
+
+
+class CardType(models.TextChoices):
+    SURVEY_INPUT = "SURVEY_INPUT", _("Survey Input")
+    SURVEY_DISPLAY = "SURVEY_DISPLAY", _("Survey Display")
+    POLL = "POLL", _("Poll")
+
+class Card(models.Model):
+    
+    name = models.CharField(max_length=128)
+    desc = models.CharField(max_length=256, blank=True, null=True)
+    type = models.CharField(max_length=32, default=CardType.SURVEY_INPUT)
+
+    total_questions = models.IntegerField(default=0)
+
+    # Only for Polling 
+    to_be_shown = models.BooleanField(default=True)
+    start_time = models.DateTimeField(null=False, blank=True)   # Provides provision to schedule polling
+    end_time = models.DateTimeField(null=False, blank=True)
+    duration = models.DurationField(default=timedelta(minutes=1))
+
+
+    activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, null=True)
+    sequence_no = models.IntegerField(null=False, default=0)
+
+    users = models.ManyToManyField(User, through="UserCard", related_name="participating_cards")
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.id}. {self.name}"
+    
+
+class UserCard(models.Model):
+
+    card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    completed_questions = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    class Meta:
+        unique_together = ['card', 'user']
+
+    def str(self):
+        return f"C = {self.card.id} U = {self.user.id}"
+    
