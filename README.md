@@ -73,3 +73,7 @@ Follow these steps to get the Django project up and running locally using Docker
    ```
 
    Use `-v` flag to remove volumes as well.
+
+
+   docker exec -it proleap-backend-web python manage.py loaddata until_questions.json
+   
