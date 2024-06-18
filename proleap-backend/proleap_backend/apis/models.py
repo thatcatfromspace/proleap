@@ -124,7 +124,8 @@ class Activity(models.Model):
 
     def __str__(self) -> str:
         return f"{self.batch} {self.name} {self.sequence_no}"
-    
+
+
 class UserActivity(models.Model):
 
     activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, null=True)
@@ -150,6 +151,7 @@ class CardType(models.TextChoices):
     SURVEY_DISPLAY = "SURVEY_DISPLAY", _("Survey Display")
     POLL = "POLL", _("Poll")
 
+
 class Card(models.Model):
     
     name = models.CharField(max_length=128)
@@ -172,8 +174,14 @@ class Card(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['activity', 'sequence_no'], name='unique_activity_sequence_no')
+        ]
+
     def __str__(self) -> str:
         return f"{self.id}. {self.name}"
+
 
 class UserCard(models.Model):
 
@@ -209,6 +217,7 @@ class QuestionType(models.TextChoices):
     TIME = "TIME", _("time")
     EMAIL = "EMAIL", _("email")
 
+
 class Question(models.Model):
 
     text = models.CharField(max_length=512, null=False, blank=False)
@@ -233,12 +242,16 @@ class Question(models.Model):
     def __str__(self) -> str:
         return f"{self.id}. {self.text}"
 
+
 class Option(models.Model):
 
     value = models.CharField(max_length=256, null=False, blank=True)
     sequence_no = models.IntegerField(null=False, default=0)
 
     question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True, related_name="options")
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         constraints = [
