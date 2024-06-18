@@ -100,7 +100,7 @@ class UserDetailAPIView(APIView):
     )
     def put(self, request, id):
         try:
-            user = self.get_object(id)
+            user = User.objects.get(pk=id)
             serializer = UserSerializer(user, data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -117,7 +117,7 @@ class UserDetailAPIView(APIView):
     )
     def delete(self, request, id):
         try:
-            user = self.get_object(id)
+            user = User.objects.get(pk=id)
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
