@@ -9,6 +9,8 @@ from .views import (
    BatchListCreateAPIView, BatchDetailAPIView, UserBatchListCreateAPIView, UserBatchDetailAPIView, BatchUserListAPIView,
    ActivityListCreateAPIView, ActivityDetailAPIView, UserActivityListCreateAPIView, UserActivityDetailAPIView,
    CardListCreateAPIView, CardDetailAPIView, UserCardListCreateAPIView, UserCardDetailAPIView, 
+   QuestionListCreateAPIView, QuestionDetailAPIView, OptionListCreateAPIView, OptionDetailAPIView,
+   AnswerListCreateAPIView, AnswerDetailAPIView
 )
 
 schema_view = get_schema_view(
@@ -62,4 +64,13 @@ urlpatterns = [
    # URLs for UserCard APIs
    path('user-cards/', UserCardListCreateAPIView.as_view(), name='user-card-list-create'),
    path('user-cards/<int:pk>/', UserCardDetailAPIView.as_view(), name='user-card-detail'),
+
+   path('questions/', QuestionListCreateAPIView.as_view(), name='question-list-create'),
+   path('questions/<int:pk>/', QuestionDetailAPIView.as_view(), name='question-detail'),
+
+   path('options/', OptionListCreateAPIView.as_view(), name='option-list-create'),
+   path('options/<int:pk>/', OptionDetailAPIView.as_view(), name='option-detail'),
+
+   path('answers/', AnswerListCreateAPIView.as_view(), name='answer-list-create'),
+   path('answers/<int:pk>/', AnswerDetailAPIView.as_view(), name='answer-detail'),
 ]
