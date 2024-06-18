@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.utils import IntegrityError
-from .models import UserBatch, Status, Activity, UserActivity
+from .models import UserBatch, Status, Activity, UserActivity, Card, UserCard
+
 
 # Signal for User's Batch progress
 @receiver(post_save, sender=UserBatch)
@@ -31,6 +32,7 @@ def update_user_batch_status(sender, instance, created, **kwargs):
         print(f"IntegrityError occurred: {e}")
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 # Signal for User's Activity progress with UserBatch completed_card's count
 @receiver(post_save, sender=UserActivity)
@@ -81,6 +83,55 @@ def update_user_activity_status(sender, instance, created, **kwargs):
         print(f"An error occurred: {e}")
 
 
+# Signal for User's Card progress with UserBatch completed_question's count
+@receiver(post_save, sender=UserCard)
+def update_user_card_status(sender, instance, created, **kwargs):
+    try:
+        if created:
+            # Only update status on creation if not already set
+            if instance.completed_questions == 0:
+                instance.status = Status.NOT_ATTEMPTED
+            elif 0 < instance.completed_questions < instance.card.total_questions:
+                instance.status = Status.IN_PROGRESS
+        else:
+            # Update status on update if necessary
+            if instance.completed_questions == 0:
+                instance.status = Status.NOT_ATTEMPTED
+            elif 0 < instance.completed_questions < instance.card.total_questions:
+                instance.status = Status.IN_PROGRESS
+            elif instance.completed_questions >= instance.card.total_questions:
+                instance.status = Status.COMPLETED
+
+        # Check if completed_questions field is updated
+        if kwargs.get('update_fields') is None or 'completed_questions' in kwargs['update_fields']:
+            instance.save(update_fields=['status'])
+
+        # Fetch all cards for the activity of the current card
+        cards_in_activity = instance.card.activity.cards.all()
+        
+        # Fetch all UserCard for the user and the cards in the activity
+        user_cards_in_activity = UserCard.objects.filter(user=instance.user, card__in=cards_in_activity)
+        
+        # Count the number of cards completed by the user in the activity
+        completed_cards_count = user_cards_in_activity.filter(status=Status.COMPLETED).count()
+        
+        # Fetch the UserActivity instance
+        user_activity = UserActivity.objects.get(user=instance.user, activity=instance.card.activity)
+        
+        # Update the completed_cards count in UserActivity
+        user_activity.completed_cards = completed_cards_count
+        
+        # Save the UserActivity instance
+        user_activity.save(update_fields=['completed_cards'])
+
+    except UserActivity.DoesNotExist:
+        print(f"UserActivity instance for user {instance.user.id} and activity {instance.card.activity.id} does not exist.")
+    except IntegrityError as e:
+        print(f"IntegrityError occurred: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
 # Signal for UserActivity Creation
 @receiver(post_save, sender=Activity)
 def create_user_activities(sender, instance, created, **kwargs):
@@ -96,5 +147,22 @@ def create_user_activities(sender, instance, created, **kwargs):
 
         # Bulk create UserActivity instances
         UserActivity.objects.bulk_create(user_activities)
+
+
+# Signal for UserCard Creation
+@receiver(post_save, sender=Card)
+def create_user_cards(sender, instance, created, **kwargs):
+    if created and instance.activity:  # Check if the card is newly created and has an associated activity
+        # Fetch all users in the activity
+        users_in_activity = instance.activity.users.all()
+
+        # Create UserCard for each user in the activity
+        user_cards = [
+            UserCard(user=user, card=instance)
+            for user in users_in_activity
+        ]
+
+        # Bulk create UserCard instances
+        UserCard.objects.bulk_create(user_cards)
 
 

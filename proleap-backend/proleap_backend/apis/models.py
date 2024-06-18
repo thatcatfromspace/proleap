@@ -112,13 +112,15 @@ class Activity(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
-    users = models.ManyToManyField("User", related_name="participating_activity", through="UserActivity")
+    users = models.ManyToManyField("User", related_name="participating_activities", through="UserActivity")
 
-    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, related_name="activity", null=True)
+    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, related_name="activities", null=True)
     sequence_no = models.IntegerField(default=1, null=False)
 
     class Meta:
-        unique_together = ('batch', 'name', 'sequence_no')
+        constraints = [
+            models.UniqueConstraint(fields=['batch', 'name', 'sequence_no'], name='unique_batch_name_sequence')
+        ]
 
     def __str__(self) -> str:
         return f"{self.batch} {self.name} {self.sequence_no}"
@@ -135,7 +137,9 @@ class UserActivity(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
-        unique_together = ['activity', 'user']
+        constraints = [
+            models.UniqueConstraint(fields=['activity', 'user'], name='unique_activity_user')
+        ]
 
     def str(self):
         return f"A = {self.activity.id} U = {self.user.id}"
@@ -163,7 +167,7 @@ class Card(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, null=True)
     sequence_no = models.IntegerField(null=False, default=0)
 
-    users = models.ManyToManyField(User, through="UserCard", related_name="participating_cards")
+    users = models.ManyToManyField(User, through="UserCard", related_name="participating_cards")    # Use settings.AUTH_USER_MODEL
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -183,7 +187,9 @@ class UserCard(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
-        unique_together = ['card', 'user']
+        constraints = [
+            models.UniqueConstraint(fields=['card', 'user'], name='unique_card_user')
+        ]
 
     def str(self):
         return f"C = {self.card.id} U = {self.user.id}"
