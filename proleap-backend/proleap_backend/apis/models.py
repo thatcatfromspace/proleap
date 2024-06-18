@@ -194,3 +194,4 @@ class UserCard(models.Model):
     def str(self):
         return f"C = {self.card.id} U = {self.user.id}"
     
+
