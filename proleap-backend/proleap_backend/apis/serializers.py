@@ -9,6 +9,7 @@ from .models import (
     User, Batch, UserBatch, Status,
     Activity, UserActivity,
     Card, UserCard,
+    Question, Option, Answer
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -176,3 +177,42 @@ class UserCardSerializer(serializers.ModelSerializer):
         except Exception as e:
             raise serializers.ValidationError(str(e))
         
+
+class QuestionSerializer(serializers.ModelSerializer):
+
+    # card = serializers.PrimaryKeyRelatedField(queryset=Card.objects.all(), required=False)
+    # users = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True, required=False)
+
+    class Meta:
+        model = Question
+        fields = [
+            'id', 'text', 'type', 'desc', 'is_required',
+            'card', 'sequence_no', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class OptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Option
+        fields = ['id', 'value', 'sequence_no', 'question', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def __str__(self):
+        return f"{self.id}. {self.value}"   # Add __str__ to all serializers
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        fields = ['id', 'answer', 'user', 'question', 'option', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def __str__(self):
+        if self.answer:
+            return f"{self.id}. U = {self.user.id} Q = {self.question.id} A = {self.answer[:3]}.."
+        else:
+            return f"{self.id}. U = {self.user.id} Q = {self.question.id} O = {self.option.id}"
+        
+
