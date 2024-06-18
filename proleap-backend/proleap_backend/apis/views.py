@@ -9,11 +9,12 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import AccessToken, TokenError
 
-from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard
+from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
 from .serializers import (
     UserSerializer, BatchSerializer, UserBatchSerializer, 
     ActivitySerializer, UserActivitySerializer,
     CardSerializer, UserCardSerializer, 
+    QuestionSerializer, OptionSerializer, AnswerSerializer
 )
 
 class UserListAPIView(APIView):
@@ -817,4 +818,330 @@ class UserCardDetailAPIView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+class QuestionListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all questions",
+        responses={200: QuestionSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            questions = Question.objects.all()
+            serializer = QuestionSerializer(questions, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new question",
+        request_body=QuestionSerializer,
+        responses={
+            201: QuestionSerializer,
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = QuestionSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class QuestionDetailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a question by ID",
+        responses={
+            200: QuestionSerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            question = Question.objects.get(pk=pk)
+            serializer = QuestionSerializer(question)
+            return Response(serializer.data)
+        except Question.DoesNotExist:
+            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update a question by ID",
+        request_body=QuestionSerializer,
+        responses={
+            200: QuestionSerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):
+        try:
+            question = Question.objects.get(pk=pk)
+            serializer = QuestionSerializer(question, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Question.DoesNotExist:
+            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete a question by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            question = Question.objects.get(pk=pk)
+            question.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Question.DoesNotExist:
+            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class OptionListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all options",
+        responses={200: OptionSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            options = Option.objects.all()
+            serializer = OptionSerializer(options, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new option",
+        request_body=OptionSerializer,
+        responses={
+            201: OptionSerializer,
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = OptionSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OptionDetailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve an option by ID",
+        responses={
+            200: OptionSerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            option = Option.objects.get(pk=pk)
+            serializer = OptionSerializer(option)
+            return Response(serializer.data)
+        except Option.DoesNotExist:
+            return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update an option by ID",
+        request_body=OptionSerializer,
+        responses={
+            200: OptionSerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):
+        try:
+            option = Option.objects.get(pk=pk)
+            serializer = OptionSerializer(option, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Option.DoesNotExist:
+            return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete an option by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            option = Option.objects.get(pk=pk)
+            option.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Option.DoesNotExist:
+            return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class AnswerListCreateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="List all answers",
+        responses={200: AnswerSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
+    )
+    def get(self, request):
+        try:
+            answers = Answer.objects.all()
+            serializer = AnswerSerializer(answers, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Create a new answer",
+        request_body=AnswerSerializer,
+        responses={
+            201: AnswerSerializer,
+            400: openapi.Response(description='Invalid input'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def post(self, request):
+        try:
+            serializer = AnswerSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+
+                # Check if all questions in the card are answered
+                # question = serializer.instance.question
+                # card = question.card
+                # questions_in_card = card.questions.all()
+                
+                # user_answers = Answer.objects.filter(
+                #     user=serializer.instance.user, 
+                #     question__in=questions_in_card
+                # ).distinct('question').count()
+
+                # if user_answers == questions_in_card.count():
+                #     user_card = UserCard.objects.get(user=serializer.instance.user, card=card)
+                #     user_card.completed_questions = user_answers
+                #     user_card.save(update_fields=['completed_questions'])
+
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AnswerDetailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve an answer by ID",
+        responses={
+            200: AnswerSerializer,
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def get(self, request, pk):
+        try:
+            answer = Answer.objects.get(pk=pk)
+            serializer = AnswerSerializer(answer)
+            return Response(serializer.data)
+        except Answer.DoesNotExist:
+            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Update an answer by ID",
+        request_body=AnswerSerializer,
+        responses={
+            200: AnswerSerializer,
+            400: openapi.Response(description='Invalid input'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def put(self, request, pk):
+        try:
+            answer = Answer.objects.get(pk=pk)
+            serializer = AnswerSerializer(answer, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+
+                # Check if all questions in the card are answered
+                # question = serializer.instance.question
+                # card = question.card
+                # questions_in_card = card.questions.all()
+
+                # user_answers = Answer.objects.filter(
+                #     user=serializer.instance.user, 
+                #     question__in=questions_in_card
+                # ).distinct('question').count()
+
+                # if user_answers == questions_in_card.count():
+                #     user_card = UserCard.objects.get(user=serializer.instance.user, card=card)
+                #     user_card.completed_questions = user_answers
+                #     user_card.save(update_fields=['completed_questions'])
+
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Answer.DoesNotExist:
+            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Delete an answer by ID",
+        responses={
+            204: openapi.Response(description='No Content'),
+            404: openapi.Response(description='Not Found'),
+            500: openapi.Response(description='Internal Server Error')
+        }
+    )
+    def delete(self, request, pk):
+        try:
+            answer = Answer.objects.get(pk=pk)
+            answer.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Answer.DoesNotExist:
+            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
