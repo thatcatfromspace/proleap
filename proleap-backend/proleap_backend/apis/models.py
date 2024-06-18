@@ -195,3 +195,79 @@ class UserCard(models.Model):
         return f"C = {self.card.id} U = {self.user.id}"
     
 
+class QuestionType(models.TextChoices):
+    SHORT_ANSWER = "SHORT_ANSWER", _("short_answer")
+    PARAGRAPH = "PARAGRAPH", _("paragraph")
+    NUMBER = "NUMBER", _("number")
+    RADIO = "RADIO", _("radio")
+    DATE = "DATE", _("date")
+    MULTIPLE_CHOICE = "MULTIPLE_CHOICE", _("multiple_choice")
+    FILE = "FILE", _("file")
+    CHECKBOXES = "CHECKBOXES", _("checkboxes")
+    URL = "URL", _("url")
+    IMAGE = "IMAGE", _("image")
+    TIME = "TIME", _("time")
+    EMAIL = "EMAIL", _("email")
+
+class Question(models.Model):
+
+    text = models.CharField(max_length=512, null=False, blank=False)
+    type = models.CharField(max_length=64, choices=QuestionType.choices, null=False, blank=False, default=QuestionType.SHORT_ANSWER)
+    desc = models.CharField(max_length=256, null=True, blank=True)
+
+    is_required = models.BooleanField(default=True)
+
+    card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
+    sequence_no = models.IntegerField(null=False, default=0)
+
+    users = models.ManyToManyField(User, through="Answer", related_name="user_questions")    # Use settings.AUTH_USER_MODEL
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['card', 'sequence_no'], name='unique_card_sequence_no')
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.id}. {self.text}"
+
+class Option(models.Model):
+
+    value = models.CharField(max_length=256, null=False, blank=True)
+    sequence_no = models.IntegerField(null=False, default=0)
+
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True, related_name="options")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['question', 'sequence_no'], name='unique_question_sequence_no')
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.id}. {self.value}"
+
+
+class Answer(models.Model):
+
+    answer = models.CharField(max_length=500, blank=True, null=True)
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user_answers")
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
+    option = models.ForeignKey(Option, on_delete=models.SET_NULL, null=True)
+
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+
+    class Meta:
+        unique_together = ["user", "question", "option"]
+
+    def __str__(self) -> str:
+        if self.answer:
+            return f"{self.id}. U = {self.user.id} Q = {self.question.id} A = {self.answer[:3]}.."
+        else:
+            return f"{self.id}. U = {self.user.id} Q = {self.question.id} O = {self.option.id}"
+
