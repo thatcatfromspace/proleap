@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.utils import IntegrityError
+from django.db import transaction
 from .models import UserBatch, Status, Activity, UserActivity, Card, UserCard
 
 
@@ -132,37 +133,71 @@ def update_user_card_status(sender, instance, created, **kwargs):
         print(f"An error occurred: {e}")
 
 
-# Signal for UserActivity Creation
-@receiver(post_save, sender=Activity)
-def create_user_activities(sender, instance, created, **kwargs):
-    if created and instance.batch:  # Check if the activity is newly created and has an associated batch
-        # Fetch all users in the batch
-        users_in_batch = instance.batch.users.all()
+# # Signal for UserActivity Creation
+# @receiver(post_save, sender=Activity)
+# def create_user_activities(sender, instance, created, **kwargs):
+#     if created and instance.batch:  # Check if the activity is newly created and has an associated batch
+#         # Fetch all users in the batch
+#         users_in_batch = instance.batch.users.all()
 
-        # Create UserActivity for each user in the batch
-        user_activities = [
-            UserActivity(user=user, activity=instance)
-            for user in users_in_batch
-        ]
+#         # Create UserActivity for each user in the batch
+#         user_activities = [
+#             UserActivity(user=user, activity=instance)
+#             for user in users_in_batch
+#         ]
 
-        # Bulk create UserActivity instances
-        UserActivity.objects.bulk_create(user_activities)
+#         # Bulk create UserActivity instances
+#         UserActivity.objects.bulk_create(user_activities)
 
 
-# Signal for UserCard Creation
-@receiver(post_save, sender=Card)
-def create_user_cards(sender, instance, created, **kwargs):
-    if created and instance.activity:  # Check if the card is newly created and has an associated activity
-        # Fetch all users in the activity
-        users_in_activity = instance.activity.users.all()
+# # Signal for UserCard Creation
+# @receiver(post_save, sender=Card)
+# def create_user_cards(sender, instance, created, **kwargs):
+#     if created and instance.activity:  # Check if the card is newly created and has an associated activity
+#         # Fetch all users in the activity
+#         users_in_activity = instance.activity.users.all()
 
-        # Create UserCard for each user in the activity
-        user_cards = [
-            UserCard(user=user, card=instance)
-            for user in users_in_activity
-        ]
+#         # Create UserCard for each user in the activity
+#         user_cards = [
+#             UserCard(user=user, card=instance)
+#             for user in users_in_activity
+#         ]
 
-        # Bulk create UserCard instances
-        UserCard.objects.bulk_create(user_cards)
+#         # Bulk create UserCard instances
+#         UserCard.objects.bulk_create(user_cards)
+
+
+
+
+
+@receiver(post_save, sender=UserBatch)
+def create_user_activities_cards_questions(sender, instance, created, **kwargs):
+    if created:
+        try:
+            # Ensure atomic transactions to maintain data integrity
+            with transaction.atomic():
+                # Fetch all activities in the batch
+                activities_in_batch = Activity.objects.filter(batch=instance.batch)
+
+                # Create UserActivity for each activity in the batch
+                user_activities = [
+                    UserActivity(user=instance.user, activity=activity)
+                    for activity in activities_in_batch
+                ]
+                UserActivity.objects.bulk_create(user_activities)
+
+                # For each activity, fetch the cards and create UserCard instances
+                for activity in activities_in_batch:
+                    cards_in_activity = Card.objects.filter(activity=activity)
+                    user_cards = [
+                        UserCard(user=instance.user, card=card)
+                        for card in cards_in_activity
+                    ]
+                    UserCard.objects.bulk_create(user_cards)
+
+        except IntegrityError as e:
+            print(f"IntegrityError occurred: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 
