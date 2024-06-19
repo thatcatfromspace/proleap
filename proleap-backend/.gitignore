@@ -171,3 +171,5 @@ cython_debug/
 ./proleap_backend/proleap_backend/apis/__pycache__ #TODO: Fix to ignore
 
 **/__pycache__/
+
+/proleap-backend/proleap_backend/apis/migrations/
