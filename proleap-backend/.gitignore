@@ -172,4 +172,4 @@ cython_debug/
 
 **/__pycache__/
 
-/proleap-backend/proleap_backend/apis/migrations/
+./proleap_backend/apis/migrations/
