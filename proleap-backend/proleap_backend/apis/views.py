@@ -1237,7 +1237,7 @@ class UserRegister(APIView):
                     'email': user.email,
                     'exp': datetime.now() + timedelta(hours=24)  # Token valid for 24 hours
                 }
-                token = jwt.encode(token_payload, settings.SECRET_KEY, algorithm='HS256')
+                token = jwt.encode(token_payload, settings.SECRET_KEY, algorithm='HS256') #TODO: make the token assigned to a user in outstanding token table
 
                 # Build verification URL
                 current_site = get_current_site(request)
