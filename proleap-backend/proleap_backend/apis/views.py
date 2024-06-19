@@ -1,4 +1,6 @@
+from datetime import datetime, timedelta
 from django.conf import settings
+import jwt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +17,17 @@ from django.http import JsonResponse
 import csv
 import io
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.urls import reverse
+from django.shortcuts import redirect
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+
 
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
@@ -1154,15 +1167,13 @@ class AnswerDetailAPIView(APIView):
 
 
 class UserRegister(APIView):
-
     permission_classes = [AllowAny]
-
     parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
         operation_summary="Upload CSV to register users",
         operation_description="Endpoint to register users from a CSV file. Each row in the CSV should contain fields: email, username, name, role, gender, phoneNumber.",
-        consumes=["multipart/form-data"],  # Specify the content type for file uploads
+        consumes=["multipart/form-data"],
         responses={
             201: openapi.Response(
                 description='Users registered and emails sent',
@@ -1220,19 +1231,32 @@ class UserRegister(APIView):
                     is_verified=False
                 )
 
-                # Generate tokens
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
-                refresh_token = str(refresh)
+                # Generate JWT token for verification
+                token_payload = {
+                    'user_id': user.id,
+                    'email': user.email,
+                    'exp': datetime.now() + timedelta(hours=24)  # Token valid for 24 hours
+                }
+                token = jwt.encode(token_payload, settings.SECRET_KEY, algorithm='HS256')
 
-                # Send email
-                send_mail(
-                    'Welcome to ProLeap',
-                    f'Your user ID: {user.id}\nAccess Token: {access_token}\nRefresh Token: {refresh_token}',
+                # Build verification URL
+                current_site = get_current_site(request)
+                domain = current_site.domain
+                verification_url = f"http://{domain}/apis/verify/{token}/"
+
+                # Send email with verification link
+                subject = 'Activate your account'
+                message = render_to_string('verification_email.html', {
+                    'user': user,
+                    'verification_url': verification_url,
+                })
+                email = EmailMessage(
+                    subject,
+                    message,
                     settings.DEFAULT_FROM_EMAIL,
                     [user.email],
-                    fail_silently=False,
                 )
+                email.send()
 
                 success_count += 1
             except Exception as e:
@@ -1244,3 +1268,21 @@ class UserRegister(APIView):
             return Response({'success': f'{success_count} users have been registered and emails sent'}, status=status.HTTP_201_CREATED)
         
 
+class VerifyEmail(APIView):
+    def get(self, request, token):
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user = User.objects.get(id=payload['user_id'])
+        except jwt.ExpiredSignatureError:
+            return Response({'error': 'Verification link has expired'}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.InvalidTokenError:
+            return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if user:
+            user.is_verified = True
+            user.save()
+            return redirect('http://localhost:3000/success')  # Redirect to success page in frontend
+        else:
+            return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)

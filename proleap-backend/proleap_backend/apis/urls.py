@@ -10,7 +10,7 @@ from .views import (
    ActivityListCreateAPIView, ActivityDetailAPIView, UserActivityListCreateAPIView, UserActivityDetailAPIView,
    CardListCreateAPIView, CardDetailAPIView, UserCardListCreateAPIView, UserCardDetailAPIView, 
    QuestionListCreateAPIView, QuestionDetailAPIView, OptionListCreateAPIView, OptionDetailAPIView,
-   AnswerListCreateAPIView, AnswerDetailAPIView, UserRegister
+   AnswerListCreateAPIView, AnswerDetailAPIView, UserRegister, VerifyEmail
 )
 
 schema_view = get_schema_view(
@@ -75,4 +75,7 @@ urlpatterns = [
    path('answers/<int:pk>/', AnswerDetailAPIView.as_view(), name='answer-detail'),
 
    path('upload-csv/', UserRegister.as_view(), name='upload_users_csv'),
+
+   path('register/', UserRegister.as_view(), name='user-register'),
+   path('verify/<str:token>/', VerifyEmail.as_view(), name='verify-email'),
 ]

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from datetime import timedelta
+import os
 from pathlib import Path
 
 from django.conf import settings
@@ -63,7 +64,9 @@ ROOT_URLCONF = 'proleap_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            # os.path.join(BASE_DIR, 'templates'),  # Common templates directory
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
