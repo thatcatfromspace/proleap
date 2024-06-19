@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg import openapi
@@ -13,7 +13,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import AccessToken, TokenError
 from rest_framework.decorators import api_view
 from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 import csv
 import io
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -1246,10 +1246,12 @@ class UserRegister(APIView):
 
                 # Send email with verification link
                 subject = 'Activate your account'
-                message = render_to_string('verification_email.html', {
-                    'user': user,
-                    'verification_url': verification_url,
-                })
+                # message = render_to_string('verification_email.html', {
+                #     'user': user,
+                #     'verification_url': verification_url,
+                # })
+                message = f'Please click the following link to verify your account: {verification_url}'
+
                 email = EmailMessage(
                     subject,
                     message,
@@ -1269,20 +1271,27 @@ class UserRegister(APIView):
         
 
 class VerifyEmail(APIView):
+
+    permission_classes=[AllowAny]
+
     def get(self, request, token):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-            user = User.objects.get(id=payload['user_id'])
+            user = get_object_or_404(User, id=payload['user_id'])
         except jwt.ExpiredSignatureError:
-            return Response({'error': 'Verification link has expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Verification link has expired'}, status=400)
         except jwt.InvalidTokenError:
-            return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'error': 'Invalid verification link'}, status=400)
+        except User.ObjectDoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
 
-        if user:
-            user.is_verified = True
-            user.save()
-            return redirect('http://localhost:3000/success')  # Redirect to success page in frontend
-        else:
-            return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
+        user.is_verified = True
+        user.save(update_fields=['is_verified'])
+
+        response_data = {
+            'message': 'Email verification successful',
+            'user_id': user.id,
+            'username': user.username,
+        }
+
+        return JsonResponse(response_data)
