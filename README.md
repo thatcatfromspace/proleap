@@ -44,6 +44,7 @@ Follow these steps to get the Django project up and running locally using Docker
    ```bash
    docker exec -it proleap-backend-web python manage.py makemigrations
    docker exec -it proleap-backend-web python manage.py migrate
+   docker exec -it proleap-backend-web python manage.py loaddata until_options.json
    ```
 
 5. **Create a superuser (if needed):**
@@ -55,10 +56,10 @@ Follow these steps to get the Django project up and running locally using Docker
    ```
 
    Follow the prompts to set up the superuser account.
-   Email: admin@proleap.com
-   username: admin
-   password: admin
-   too short?: y
+   - Email: admin@proleap.com
+   - username: admin
+   - password: admin
+   - too short?: y
 
 6. **Access the Django development server:**
 
@@ -75,5 +76,9 @@ Follow these steps to get the Django project up and running locally using Docker
    Use `-v` flag to remove volumes as well.
 
 
-   docker exec -it proleap-backend-web python manage.py loaddata until_questions.json
+8. **Acesss Server logs**
+
+   ```bash
    docker logs proleap-backend-web
+   ```
+   
