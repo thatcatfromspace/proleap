@@ -10,7 +10,7 @@ from .views import (
    ActivityListCreateAPIView, ActivityDetailAPIView, UserActivityListCreateAPIView, UserActivityDetailAPIView,
    CardListCreateAPIView, CardDetailAPIView, UserCardListCreateAPIView, UserCardDetailAPIView, 
    QuestionListCreateAPIView, QuestionDetailAPIView, OptionListCreateAPIView, OptionDetailAPIView,
-   AnswerListCreateAPIView, AnswerDetailAPIView
+   AnswerListCreateAPIView, AnswerDetailAPIView, upload_users_csv
 )
 
 schema_view = get_schema_view(
@@ -73,4 +73,6 @@ urlpatterns = [
 
    path('answers/', AnswerListCreateAPIView.as_view(), name='answer-list-create'),
    path('answers/<int:pk>/', AnswerDetailAPIView.as_view(), name='answer-detail'),
+
+   path('upload-csv/', upload_users_csv, name='upload_users_csv'),
 ]
