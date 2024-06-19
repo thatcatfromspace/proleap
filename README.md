@@ -51,7 +51,7 @@ Follow these steps to get the Django project up and running locally using Docker
    To create a Django superuser for admin access:
 
    ```bash
-   docker-compose exec web python manage.py createsuperuser
+   docker exec -it proleap-backend-web python manage.py createsuperuser
    ```
 
    Follow the prompts to set up the superuser account.
@@ -76,4 +76,4 @@ Follow these steps to get the Django project up and running locally using Docker
 
 
    docker exec -it proleap-backend-web python manage.py loaddata until_questions.json
-   
+   docker logs proleap-backend-web
