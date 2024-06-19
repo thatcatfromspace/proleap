@@ -159,7 +159,6 @@ class SignInAPIView(APIView):
         password = request.data.get('password')
         try:
             user = User.objects.get(email=email)
-            print(user.email, user.password)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
