@@ -3,6 +3,9 @@ from django.dispatch import receiver
 from django.db.utils import IntegrityError
 from django.db import transaction
 from .models import UserBatch, Status, Activity, UserActivity, Card, UserCard, Question, Answer
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Signal for User's Batch progress
@@ -280,12 +283,14 @@ def update_user_progress(sender, instance, created, **kwargs):
             user_card.status = Status.COMPLETED
 
         user_card.save(update_fields=['completed_questions', 'status'])
-        print(f"UserCard updated: {user_card.status}, {user_card.completed_questions}")
+        # print(f"UserCard updated: {user_card.status}, {user_card.completed_questions}")
+        logger.info(f"UserCard updated: {user_card.status}, {user_card.completed_questions}")
 
 
         # Fetch all cards for the activity of the current card
-        cards_in_activity = card.activity.cards.all()
-        user_cards_in_activity = UserCard.objects.filter(user=user, card__in=cards_in_activity)
+        cards_in_activity = Card.objects.filter(activity=card.activity)
+        card_ids = cards_in_activity.values_list('id', flat=True)
+        user_cards_in_activity = UserCard.objects.filter(user=user, card__in=card_ids)
         completed_cards_count = user_cards_in_activity.filter(status=Status.COMPLETED).count()
 
         # Update the UserActivity instance
@@ -300,15 +305,18 @@ def update_user_progress(sender, instance, created, **kwargs):
             user_activity.status = Status.COMPLETED
 
         user_activity.save(update_fields=['completed_cards', 'status'])
-        print(f"UserActivity updated: {user_activity.status}, {user_activity.completed_cards}")
+        # print(f"UserActivity updated: {user_activity.status}, {user_activity.completed_cards}")
+        logger.info(f"UserActivity updated: {user_activity.status}, {user_activity.completed_cards}")
+
 
         # Fetch all activities for the batch of the current activity
-        activities_in_batch = card.activity.batch.activities.all()
-        user_activities_in_batch = UserActivity.objects.filter(user=user, activity__in=activities_in_batch)
+        activities_in_batch = Activity.objects.filter(batch=card.activity.batch)
+        activity_ids = activities_in_batch.values_list('id', flat=True)
+        user_activities_in_batch = UserActivity.objects.filter(user=user, activity__in=activity_ids)
         completed_activities_count = user_activities_in_batch.filter(status=Status.COMPLETED).count()
 
         # Update the UserBatch instance
-        user_batch, created = UserBatch.objects.get(user=user, batch=card.activity.batch)
+        user_batch = UserBatch.objects.get(user=user, batch=card.activity.batch)
         user_batch.completed_activities = completed_activities_count
 
         if completed_activities_count == 0:
@@ -320,7 +328,9 @@ def update_user_progress(sender, instance, created, **kwargs):
             user_batch.is_completed = True
 
         user_batch.save(update_fields=['completed_activities', 'status', 'is_completed'])
-        print(f"UserBatch updated: {user_batch.status}, {user_batch.completed_activities}")
+        # print(f"UserBatch updated: {user_batch.status}, {user_batch.completed_activities}")
+        logger.info(f"UserBatch updated: {user_batch.status}, {user_batch.completed_activities}")
+
 
     except UserCard.DoesNotExist:
         print(f"UserCard instance for user {user.id} and card {card.id} does not exist.")
@@ -332,3 +342,5 @@ def update_user_progress(sender, instance, created, **kwargs):
         print(f"IntegrityError occurred: {e}")
     except Exception as e:
         print(f"An error occurred: {e}")
+
+
