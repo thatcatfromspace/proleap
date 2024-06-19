@@ -14,6 +14,8 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 import csv
 import io
+from rest_framework.parsers import MultiPartParser, FormParser
+
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
 from .serializers import (
@@ -173,7 +175,8 @@ class SignInAPIView(APIView):
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
-                'user_id': user.id
+                'user_id': user.id,
+                'username': user.username
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -1150,89 +1153,94 @@ class AnswerDetailAPIView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-api_view(['POST'])
-@swagger_auto_schema(
-    operation_summary="Upload CSV to register users",
-    operation_description="Endpoint to register users from a CSV file. Each row in the CSV should contain fields: email, username, name, role, gender, phoneNumber.",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        required=['file'],
-        properties={
-            'file': openapi.Schema(
-                type=openapi.TYPE_FILE,
-                format=openapi.FORMAT_BINARY,
-                description='CSV file containing user data to be registered'
-            )
+class UserRegister(APIView):
+
+    permission_classes = [AllowAny]
+
+    parser_classes = (MultiPartParser, FormParser)
+
+    @swagger_auto_schema(
+        operation_summary="Upload CSV to register users",
+        operation_description="Endpoint to register users from a CSV file. Each row in the CSV should contain fields: email, username, name, role, gender, phoneNumber.",
+        consumes=["multipart/form-data"],  # Specify the content type for file uploads
+        responses={
+            201: openapi.Response(
+                description='Users registered and emails sent',
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'success': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Message indicating successful registration and email sending'
+                        )
+                    }
+                )
+            ),
+            400: 'Invalid input',
+            415: 'Unsupported Media Type',
         }
-    ),
-    responses={
-        201: openapi.Response(
-            description='Users registered and emails sent',
-            schema=openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'success': openapi.Schema(
-                        type=openapi.TYPE_STRING,
-                        description='Message indicating successful registration and email sending'
-                    )
-                }
-            )
-        ),
-        400: 'Invalid input',
-        415: 'Unsupported Media Type',
-    }
-)
-def upload_users_csv(request):
-    file = request.FILES.get('file')
+    )
+    def post(self, request):
+        file = request.FILES.get('file')
 
-    if not file:
-        return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+        if not file:
+            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not file.name.endswith('.csv'):
-        return Response({'error': 'This is not a CSV file'}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+        if not file.name.endswith('.csv'):
+            return Response({'error': 'This is not a CSV file'}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    try:
-        data = file.read().decode('utf-8')
-        io_string = io.StringIO(data)
-        csv_reader = csv.reader(io_string, delimiter=',')
-        header = next(csv_reader)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    success_count = 0
-    for row in csv_reader:
         try:
-            email, username, name, role, gender, phone_number = row
-
-            name = name or ''
-            role = role or 'USER'
-            gender = gender or ''
-            phone_number = phone_number or None
-
-            user = User.objects.create_user(
-                email=email,
-                username=username,
-                name=name,
-                role=role,
-                gender=gender,
-                phoneNumber=phone_number,
-                is_verified=False
-            )
-
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-
-            send_mail(
-                'Welcome to ProLeap',
-                f'Your user ID: {user.id}\nAccess Token: {access_token}\nRefresh Token: {refresh_token}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-
-            success_count += 1
+            data = file.read().decode('utf-8')
+            io_string = io.StringIO(data)
+            csv_reader = csv.reader(io_string, delimiter=',')
+            header = next(csv_reader)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({'success': f'{success_count} users have been registered and emails sent'}, status=status.HTTP_201_CREATED)
+        success_count = 0
+        errors = []
+
+        for row in csv_reader:
+            try:
+                email, username, name, role, gender, phone_number = row
+
+                # Process each row
+                name = name or ''
+                role = role or 'USER'
+                gender = gender or ''
+                phone_number = phone_number or None
+
+                user = User.objects.create_user(
+                    email=email,
+                    username=username,
+                    name=name,
+                    role=role,
+                    gender=gender,
+                    phoneNumber=phone_number,
+                    is_verified=False
+                )
+
+                # Generate tokens
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                refresh_token = str(refresh)
+
+                # Send email
+                send_mail(
+                    'Welcome to ProLeap',
+                    f'Your user ID: {user.id}\nAccess Token: {access_token}\nRefresh Token: {refresh_token}',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+
+                success_count += 1
+            except Exception as e:
+                errors.append(f'Error processing row: {str(e)}')
+
+        if errors:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'success': f'{success_count} users have been registered and emails sent'}, status=status.HTTP_201_CREATED)
+        
+
