@@ -17,8 +17,8 @@ Follow these steps to get the Django project up and running locally using Docker
 
    ```bash
    git clone https://github.com/Prem-Dharshan/ProLeap.git
-   git checkout dev
    cd ProLeap
+   git checkout dev
    ```
 
 2. **Navigate to backend folder**
@@ -81,4 +81,3 @@ Follow these steps to get the Django project up and running locally using Docker
    ```bash
    docker logs proleap-backend-web
    ```
-   
