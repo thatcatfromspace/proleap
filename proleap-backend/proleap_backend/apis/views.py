@@ -1288,10 +1288,22 @@ class VerifyEmail(APIView):
         user.is_verified = True
         user.save(update_fields=['is_verified'])
 
+        try:
+            latest_user_batch = UserBatch.objects.filter(user=user).latest('updated_at')
+            batch_id = latest_user_batch.id
+            batch_name = latest_user_batch.batch.name
+        except UserBatch.DoesNotExist:
+            return JsonResponse({'error': 'UserBatch not found'}, status=404)
+
+
         response_data = {
             'message': 'Email verification successful',
             'user_id': user.id,
             'username': user.username,
+            'batch_id': batch_id,
+            'batch_name': batch_name
         }
 
         return JsonResponse(response_data)
+    
+    
