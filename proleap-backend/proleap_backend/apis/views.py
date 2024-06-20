@@ -1317,16 +1317,13 @@ class VerifyEmail(APIView):
         return JsonResponse(response_data)
     
     
-
 class UserActivityAnswers(APIView):
-
     permission_classes = [AllowAny]
 
     def get(self, request, user_id, activity_id):
-
         try:
-            latest_user_card = UserCard.objects.filter(user_id=user_id).order_by('-updated_at').first()
-            first_user_card = UserCard.objects.filter(user_id=user_id).order_by('created_at').first()
+            latest_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('-updated_at').first()
+            first_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('created_at').first()
             last_card_id = latest_user_card.card.id if latest_user_card else (first_user_card.card.id if first_user_card else None)
 
             if not last_card_id:
@@ -1336,21 +1333,22 @@ class UserActivityAnswers(APIView):
                 activity = Activity.objects.get(id=activity_id)
             except Activity.DoesNotExist:
                 return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
-            
 
             cards = Card.objects.filter(activity=activity)
-
             user_cards = UserCard.objects.filter(card__in=cards, user_id=user_id)
 
             response_data = {
-                'recent_card': last_card_id,
-                'user_cards': []
+                'recent_card_id': last_card_id,
+                'cards': []
             }
 
-            for user_card in user_cards:
-                serialized_user_card = UserCardSerializer(user_card).data
-                card = user_card.card
+            for card in cards:
                 serialized_card = CardSerializer(card).data
+
+                user_card = user_cards.filter(card=card).first()
+                if user_card:
+                    serialized_user_card = UserCardSerializer(user_card).data
+                    serialized_card['user_card_progress'] = serialized_user_card
 
                 questions = Question.objects.filter(card=card)
                 serialized_questions = []
@@ -1359,22 +1357,19 @@ class UserActivityAnswers(APIView):
 
                     options = Option.objects.filter(question=question)
                     serialized_options = OptionSerializer(options, many=True).data
-                    if (serialized_options):
+                    if serialized_options:
                         serialized_question['options'] = serialized_options
 
-                        answers = Answer.objects.filter(question=question, user_id=user_id)
-                        serialized_answers = AnswerSerializer(answers, many=True).data
-                        serialized_question['answers'] = serialized_answers
+                    answers = Answer.objects.filter(question=question, user_id=user_id)
+                    serialized_answers = AnswerSerializer(answers, many=True).data
+                    serialized_question['answers'] = serialized_answers
 
-                        serialized_questions.append(serialized_question)
-                    
-                    serialized_card['questions'] = serialized_questions
-                    serialized_user_card['card'] = serialized_card
-                    response_data['user_cards'].append(serialized_user_card)
+                    serialized_questions.append(serialized_question)
 
+                serialized_card['questions'] = serialized_questions
+                response_data['cards'].append(serialized_card)
 
             return Response(response_data, status=status.HTTP_200_OK)
+
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
