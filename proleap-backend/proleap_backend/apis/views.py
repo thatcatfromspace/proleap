@@ -182,6 +182,14 @@ class SignInAPIView(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            latest_user_batch = UserBatch.objects.filter(user=user).latest('updated_at')
+            batch_id = latest_user_batch.id
+            batch_name = latest_user_batch.batch.name
+        except UserBatch.DoesNotExist:
+            return JsonResponse({'error': 'UserBatch not found'}, status=404)
+
 
         if (user.password == password):     #TODO: Use user.check_password()
             refresh = RefreshToken.for_user(user)
@@ -189,7 +197,9 @@ class SignInAPIView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user_id': user.id,
-                'username': user.username
+                'username': user.username,
+                'batch_id': batch_id,
+                'batch_name': batch_name
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
