@@ -5,29 +5,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import AccessToken, TokenError
-from rest_framework.decorators import api_view
-from django.core.mail import send_mail
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 import csv
 import io
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.urls import reverse
-from django.shortcuts import redirect
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode
-from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
-from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
-
+from .swagger_schemas import activity_answer_response_schema
 
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
@@ -1320,6 +1310,15 @@ class VerifyEmail(APIView):
 class UserActivityAnswers(APIView):
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        operation_description="Retrieve the latest card and user progress for a specific activity.",
+        responses={
+            200: activity_answer_response_schema,
+            400: 'Bad Request',
+            404: 'Not Found',
+            500: 'Internal Server Error'
+        }
+    )
     def get(self, request, user_id, activity_id):
         try:
             latest_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('-updated_at').first()
@@ -1373,3 +1372,4 @@ class UserActivityAnswers(APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
