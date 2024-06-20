@@ -5,7 +5,7 @@ from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 from .views import (
-   UserListAPIView, UserDetailAPIView, SignInAPIView, 
+   UserBatchRegister, UserListAPIView, UserDetailAPIView, SignInAPIView, 
    BatchListCreateAPIView, BatchDetailAPIView, UserBatchListCreateAPIView, UserBatchDetailAPIView, BatchUserListAPIView,
    ActivityListCreateAPIView, ActivityDetailAPIView, UserActivityListCreateAPIView, UserActivityDetailAPIView,
    CardListCreateAPIView, CardDetailAPIView, UserCardListCreateAPIView, UserCardDetailAPIView, 
@@ -75,6 +75,7 @@ urlpatterns = [
    path('answers/<int:pk>/', AnswerDetailAPIView.as_view(), name='answer-detail'),
 
    path('upload-csv/', UserRegister.as_view(), name='upload_users_csv'),
+   path('upload-userbatch-csv/', UserBatchRegister.as_view(), name='upload_users_csv'),
 
    path('register/', UserRegister.as_view(), name='user-register'),
    path('verify/<str:token>/', VerifyEmail.as_view(), name='verify-email'),

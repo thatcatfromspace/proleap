@@ -29,7 +29,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 
 
-
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
 from .serializers import (
     UserSerializer, BatchSerializer, UserBatchSerializer, 
@@ -144,7 +143,7 @@ class UserDetailAPIView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class SignInAPIView(APIView):
     permission_classes = [AllowAny]
@@ -193,7 +192,7 @@ class SignInAPIView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
 
 class BatchListCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -228,7 +227,7 @@ class BatchListCreateAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class BatchDetailAPIView(APIView):
     permission_classes = [AllowAny]
@@ -446,7 +445,7 @@ class BatchUserListAPIView(APIView):
             return self.get_users(request, batch_id)
         elif user_id:
             return self.get_batches(request, user_id)
-        
+
 
 class ActivityListCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -481,7 +480,7 @@ class ActivityListCreateAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class ActivityDetailAPIView(APIView):
     permission_classes = [AllowAny]
@@ -579,7 +578,7 @@ class UserActivityListCreateAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class UserActivityDetailAPIView(APIView):
     permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
@@ -642,7 +641,7 @@ class UserActivityDetailAPIView(APIView):
             return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class CardListCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -838,7 +837,7 @@ class UserCardDetailAPIView(APIView):
             return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class QuestionListCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -936,7 +935,7 @@ class QuestionDetailAPIView(APIView):
             return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class OptionListCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -1034,7 +1033,7 @@ class OptionDetailAPIView(APIView):
             return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
 
 class AnswerListCreateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -1268,7 +1267,78 @@ class UserRegister(APIView):
             return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'success': f'{success_count} users have been registered and emails sent'}, status=status.HTTP_201_CREATED)
-        
+
+
+class UserBatchRegister(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = (MultiPartParser, FormParser)
+
+    @swagger_auto_schema(
+        operation_summary="Upload CSV to assign users to batches",
+        operation_description="Endpoint to map users to a batch from a CSV file. Each row in the CSV should contain fields: email, batch_name, year.",
+        consumes=["multipart/form-data"],
+        responses={
+            200: openapi.Response(
+                description="Users assigned to batch.",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "success": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Message indicating successful mapping.",
+                        )
+                    },
+                ),
+            ),
+            400: "Invalid input",
+            415: "Unsupported Media Type",
+        },
+    )
+    def post(self, request):
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response(
+                {"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not file.name.endswith(".csv"):
+            return Response(
+                {"error": "This is not a CSV file"},
+                status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            )
+
+        try:
+            data = file.read().decode("utf-8")
+            io_string = io.StringIO(data)
+            csv_reader = csv.reader(io_string, delimiter=",")
+            header = next(csv_reader)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        errors = []
+        count = 0
+        for row in csv_reader:
+            try:
+                email, name, year = row
+                user = User.objects.get(email=email)
+                batch = Batch.objects.get(name=name, year=year)
+
+                userbatch = UserBatch(user=user, batch=batch)
+                userbatch.save()
+                count += 1
+
+            except Exception as e:
+                errors.append(str(e))
+
+        if errors:
+            return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(
+                {"success": f"{count} users have been mapped"},
+                status=status.HTTP_200_OK,
+            )
+
 
 class VerifyEmail(APIView):
 
