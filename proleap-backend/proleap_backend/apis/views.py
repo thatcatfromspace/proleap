@@ -1307,7 +1307,7 @@ class VerifyEmail(APIView):
         return JsonResponse(response_data)
     
     
-class UserActivityAnswers(APIView):
+class UserCardQuestionProgress(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
@@ -1374,3 +1374,6 @@ class UserActivityAnswers(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
+class UserActivityProgressList(APIView):
+    #TODO: @Ajay code here
+    pass
