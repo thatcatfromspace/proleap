@@ -10,7 +10,7 @@ from .views import (
    ActivityListCreateAPIView, ActivityDetailAPIView, UserActivityListCreateAPIView, UserActivityDetailAPIView,
    CardListCreateAPIView, CardDetailAPIView, UserCardListCreateAPIView, UserCardDetailAPIView, 
    QuestionListCreateAPIView, QuestionDetailAPIView, OptionListCreateAPIView, OptionDetailAPIView,
-   AnswerListCreateAPIView, AnswerDetailAPIView, UserRegister, VerifyEmail
+   AnswerListCreateAPIView, AnswerDetailAPIView, UserRegister, VerifyEmail, UserActivityAnswers
 )
 
 schema_view = get_schema_view(
@@ -78,4 +78,6 @@ urlpatterns = [
 
    path('register/', UserRegister.as_view(), name='user-register'),
    path('verify/<str:token>/', VerifyEmail.as_view(), name='verify-email'),
+
+   path('user/<int:user_id>/activity/<int:activity_id>/', UserActivityAnswers.as_view(), name='user-activity-card-detail'),
 ]
