@@ -19,6 +19,8 @@ const App = () => {
     "userName",
     "accessToken",
     "refreshToken",
+    "batchName",
+    "batchId"
   ]);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   useEffect(() => {
@@ -59,6 +61,8 @@ const App = () => {
             <Dashboard
               uid={userId ? userId: cookies.userId}
               userName={userName}
+              batchId={cookies.batchId}
+              batchName={cookies.batchName}
               isAuthenticated={isAuthenticated}
             />
           }

@@ -44,8 +44,22 @@ export const LoginForm = ({ setCookie, setUserId, setUserName }) => {
         console.log(res.data);
         const response = res.data;
         if (res.status === 200) {
-          // setUserId(response.id);
           setCookie("userId", response.user_id, {
+            path: "/",
+            secure: true,
+            sameSite: true,
+          });
+          setCookie("userName", response.user_id, {
+            path: "/",
+            secure: true,
+            sameSite: true,
+          });
+          setCookie("batchId", response.user_id, {
+            path: "/",
+            secure: true,
+            sameSite: true,
+          });
+          setCookie("batchName", response.user_id, {
             path: "/",
             secure: true,
             sameSite: true,
@@ -60,6 +74,8 @@ export const LoginForm = ({ setCookie, setUserId, setUserName }) => {
           });
           navigate("/dashboard");
         }
+      }).catch((err)=>{
+        console.log(err);
       });
   };
 
