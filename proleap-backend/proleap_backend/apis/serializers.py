@@ -4,13 +4,13 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 
-
 from .models import (
     User, Batch, UserBatch, Status,
     Activity, UserActivity,
     Card, UserCard,
     Question, Option, Answer
 )
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,9 +36,9 @@ class UserBatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserBatch
-        fields = ['id', 'user_id', 'batch_id', 'completed_activities', 'is_completed', 'status', 'created_at', 'updated_at']
+        fields = ['id', 'user_id', 'batch_id', 'completed_activities', 'is_completed', 'status', 'created_at',
+                  'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
-
 
     def create(self, validated_data):
         user_id = validated_data.pop('user_id')
@@ -57,7 +57,7 @@ class UserBatchSerializer(serializers.ModelSerializer):
             return user_batch
         except Exception as e:
             raise serializers.ValidationError(str(e))
-        
+
     def update(self, instance, validated_data):
         # Exclude user_id and batch_id from validated_data to keep them immutable
         validated_data.pop('user_id', None)
@@ -82,7 +82,7 @@ class ActivitySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'desc', 'start_time', 'end_time',
                   'total_cards', 'total_polling_cards',
                   'created_at', 'updated_at', 'batch', 'sequence_no',
-                ]
+                  ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -114,7 +114,7 @@ class UserActivitySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Exclude activity_id and user_id from validated_data to keep them immutable
-        validated_data.pop('activity_id', None) #TODO: Throw an error if not FKs arent't same
+        validated_data.pop('activity_id', None)     # TODO: Throw an error if not FKs aren't same
         validated_data.pop('user_id', None)
 
         instance.completed_cards = validated_data.get('completed_cards', instance.completed_cards)
@@ -128,12 +128,11 @@ class UserActivitySerializer(serializers.ModelSerializer):
 
 
 class CardSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Card
         fields = ['id', 'name', 'desc', 'type', 'to_be_shown', 'start_time', 'end_time', 'duration',
                   'total_questions', 'created_at', 'updated_at', 'activity', 'sequence_no',
-                ]
+                  ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -165,7 +164,7 @@ class UserCardSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Exclude card_id and user_id from validated_data to keep them immutable
-        validated_data.pop('card_id', None) #TODO: Throw an error if not FKs arent't same
+        validated_data.pop('card_id', None)     # TODO: Throw an error if not FKs aren't same
         validated_data.pop('user_id', None)
 
         instance.completed_questions = validated_data.get('completed_questions', instance.completed_questions)
@@ -176,10 +175,9 @@ class UserCardSerializer(serializers.ModelSerializer):
             return instance
         except Exception as e:
             raise serializers.ValidationError(str(e))
-        
+
 
 class QuestionSerializer(serializers.ModelSerializer):
-
     # card = serializers.PrimaryKeyRelatedField(queryset=Card.objects.all(), required=False)
     # users = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True, required=False)
 
@@ -193,14 +191,13 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class OptionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Option
         fields = ['id', 'value', 'sequence_no', 'question', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def __str__(self):
-        return f"{self.id}. {self.value}"   # Add __str__ to all serializers
+        return f"{self.id}. {self.value}"  # Add __str__ to all serializers
 
 
 class AnswerSerializer(serializers.ModelSerializer):
@@ -214,5 +211,3 @@ class AnswerSerializer(serializers.ModelSerializer):
             return f"{self.id}. U = {self.user.id} Q = {self.question.id} A = {self.answer[:3]}.."
         else:
             return f"{self.id}. U = {self.user.id} Q = {self.question.id} O = {self.option.id}"
-        
-

@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @receiver(post_save, sender=Answer)
 def update_user_progress(sender, instance, created, **kwargs):
     try:
@@ -38,7 +39,6 @@ def update_user_progress(sender, instance, created, **kwargs):
         # print(f"UserCard updated: {user_card.status}, {user_card.completed_questions}")
         logger.info(f"UserCard updated: {user_card.status}, {user_card.completed_questions}")
 
-
         # Fetch all cards for the activity of the current card
         cards_in_activity = Card.objects.filter(activity=card.activity)
         card_ids = cards_in_activity.values_list('id', flat=True)
@@ -59,7 +59,6 @@ def update_user_progress(sender, instance, created, **kwargs):
         user_activity.save(update_fields=['completed_cards', 'status'])
         # print(f"UserActivity updated: {user_activity.status}, {user_activity.completed_cards}")
         logger.info(f"UserActivity updated: {user_activity.status}, {user_activity.completed_cards}")
-
 
         # Fetch all activities for the batch of the current activity
         activities_in_batch = Activity.objects.filter(batch=card.activity.batch)
@@ -83,7 +82,6 @@ def update_user_progress(sender, instance, created, **kwargs):
         # print(f"UserBatch updated: {user_batch.status}, {user_batch.completed_activities}")
         logger.info(f"UserBatch updated: {user_batch.status}, {user_batch.completed_activities}")
 
-
     except UserCard.DoesNotExist:
         print(f"UserCard instance for user {user.id} and card {card.id} does not exist.")
     except UserActivity.DoesNotExist:
@@ -94,5 +92,3 @@ def update_user_progress(sender, instance, created, **kwargs):
         print(f"IntegrityError occurred: {e}")
     except Exception as e:
         print(f"An error occurred: {e}")
-
-
