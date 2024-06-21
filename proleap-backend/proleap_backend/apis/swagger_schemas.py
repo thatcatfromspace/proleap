@@ -81,11 +81,55 @@ card_schema = openapi.Schema(
     }
 )
 
+user_activity_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT, 
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "activity_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "user_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "completed_cards": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "status": openapi.Schema(type=openapi.TYPE_STRING),
+        "created_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+        "updated_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME)
+})
+
+
+activity_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "name": openapi.Schema(type=openapi.TYPE_STRING),
+        "desc": openapi.Schema(type=openapi.TYPE_STRING),
+        "start_time": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+        "end_time": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+        "total_cards": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "total_polling_cards": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "created_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+        "updated_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+        "batch": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "sequence_no": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "user_activity_progress": user_activity_schema
+    }
+
+)
+
+
+
+
+
 # Define the schema for the overall response
 activity_answer_response_schema = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         'recent_card_id': openapi.Schema(type=openapi.TYPE_INTEGER),
         'cards': openapi.Schema(type=openapi.TYPE_ARRAY, items=card_schema),
+    }
+)
+
+batch_activity_response_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'current_activity_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'activities': openapi.Schema(type=openapi.TYPE_ARRAY, items=activity_schema),
     }
 )

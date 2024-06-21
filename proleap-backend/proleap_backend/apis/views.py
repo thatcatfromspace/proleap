@@ -18,6 +18,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from .swagger_schemas import activity_answer_response_schema
+from .swagger_schemas import batch_activity_response_schema
 
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
@@ -1376,4 +1377,49 @@ class UserCardQuestionProgress(APIView):
 
 class UserActivityProgressList(APIView):
     #TODO: @Ajay code here
-    pass
+    permission_classes = [AllowAny]
+    @swagger_auto_schema(
+        operation_description="Retrieve the user's activity progress for a batch.",
+        responses={
+            200: batch_activity_response_schema,
+            400: 'Bad Request',
+            404: 'Not Found',
+            500: 'Internal Server Error'
+        }
+    )
+    def get(self, request, user_id, batch_id):
+        try:
+            latest_user_activity = UserActivity.objects.filter(user_id=user_id, activity__batch_id=batch_id).order_by('-updated_at').first()
+            first_user_activity = UserActivity.objects.filter(user_id=user_id, activity__batch_id=batch_id).order_by('created_at').first()
+            last_activity_id = latest_user_activity.activity.id if latest_user_activity else (first_user_activity.activity.id if first_user_activity else None)
+
+            if not last_activity_id:
+                return Response({'error': 'No UserActivity found for the user'}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                batch = Batch.objects.get(id=batch_id)
+            except Batch.DoesNotExist:
+                return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            activities = Activity.objects.filter(batch = batch)
+
+            response_data = {
+                    'current_activity_id': last_activity_id,
+                    'activities': []
+                }
+
+            user_activities = UserActivity.objects.filter(user_id = user_id, activity__in = activities )
+            for activity in activities :
+                serialized_activity = ActivitySerializer(activity).data
+
+                user_activity = user_activities.filter(activity = activity).first()
+                if user_activity:
+                    serialized_user_activity = UserActivitySerializer(user_activity).data
+                    serialized_activity['user_activity_progress'] = serialized_user_activity
+                
+                response_data['activities'].append(serialized_activity)
+            
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
