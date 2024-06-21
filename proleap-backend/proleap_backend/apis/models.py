@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
         if not email:
@@ -24,9 +25,11 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, username, password, **extra_fields)
 
+
 class Role(models.TextChoices):
     USER = "USER", _("User")
     ORGANIZER = "ORGANIZER", _("Organizer")
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
@@ -38,8 +41,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False) 
-    
+    is_staff = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -53,11 +56,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Batch(models.Model):
-
     name = models.CharField(null=False, max_length=48, blank=False)
     year = models.PositiveIntegerField(blank=False, null=False)
 
-    start_time = models.DateTimeField(null=True, blank=True) #TODO: Make null = False
+    start_time = models.DateTimeField(null=True, blank=True)    # TODO: Make null = False
     end_time = models.DateTimeField(null=True, blank=True)
     total_activities = models.IntegerField(default=0)
 
@@ -75,18 +77,20 @@ class Batch(models.Model):
     def __str__(self):
         return f"{self.name} {self.year}"
 
+
 class Status(models.TextChoices):
     NOT_ATTEMPTED = "NOT_ATTEMPTED", "Not Attempted"
     IN_PROGRESS = "IN_PROGRESS", "In Progress"
     COMPLETED = "COMPLETED", "Completed"
+
 
 class UserBatch(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True)
 
     completed_activities = models.IntegerField(default=0)
-    is_completed = models.BooleanField(default=False) #FIXME: Field Not neccessary, redundant
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED) 
+    is_completed = models.BooleanField(default=False)  # FIXME: Field Not necessary, redundant
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_ATTEMPTED)
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -99,7 +103,6 @@ class UserBatch(models.Model):
 
 
 class Activity(models.Model):
-
     name = models.CharField(max_length=128)
     desc = models.CharField(max_length=256, blank=True, null=True)
 
@@ -107,7 +110,8 @@ class Activity(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
 
     total_cards = models.IntegerField(default=0, null=False)
-    total_polling_cards = models.IntegerField(default=0, null=False) #TODO: Write a Trigger coz polling cards are created in runtime
+    total_polling_cards = models.IntegerField(default=0, null=False)
+    # TODO: Write a Trigger coz polling cards are created in runtime
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -127,7 +131,6 @@ class Activity(models.Model):
 
 
 class UserActivity(models.Model):
-
     activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
@@ -153,7 +156,6 @@ class CardType(models.TextChoices):
 
 
 class Card(models.Model):
-    
     name = models.CharField(max_length=128)
     desc = models.CharField(max_length=256, blank=True, null=True)
     type = models.CharField(max_length=32, default=CardType.SURVEY_INPUT)
@@ -161,15 +163,15 @@ class Card(models.Model):
 
     # Only for Polling 
     to_be_shown = models.BooleanField(default=True)
-    start_time = models.DateTimeField(null=False, blank=True)   # Provides provision to schedule polling
+    start_time = models.DateTimeField(null=False, blank=True)  # Provides provision to schedule polling
     end_time = models.DateTimeField(null=False, blank=True)
     duration = models.DurationField(default=timedelta(minutes=1))
-
 
     activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, null=True)
     sequence_no = models.IntegerField(null=False, default=0)
 
-    users = models.ManyToManyField(User, through="UserCard", related_name="participating_cards")    # Use settings.AUTH_USER_MODEL
+    users = models.ManyToManyField(User, through="UserCard",
+                                   related_name="participating_cards")  # Use settings.AUTH_USER_MODEL
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -184,7 +186,6 @@ class Card(models.Model):
 
 
 class UserCard(models.Model):
-
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
@@ -201,7 +202,7 @@ class UserCard(models.Model):
 
     def str(self):
         return f"C = {self.card.id} U = {self.user.id}"
-    
+
 
 class QuestionType(models.TextChoices):
     SHORT_ANSWER = "SHORT_ANSWER", _("short_answer")
@@ -219,9 +220,9 @@ class QuestionType(models.TextChoices):
 
 
 class Question(models.Model):
-
     text = models.CharField(max_length=512, null=False, blank=False)
-    type = models.CharField(max_length=64, choices=QuestionType.choices, null=False, blank=False, default=QuestionType.SHORT_ANSWER)
+    type = models.CharField(max_length=64, choices=QuestionType.choices, null=False, blank=False,
+                            default=QuestionType.SHORT_ANSWER)
     desc = models.CharField(max_length=256, null=True, blank=True)
 
     is_required = models.BooleanField(default=True)
@@ -229,7 +230,8 @@ class Question(models.Model):
     card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True)
     sequence_no = models.IntegerField(null=False, default=0)
 
-    users = models.ManyToManyField(User, through="Answer", related_name="user_questions")    # Use settings.AUTH_USER_MODEL
+    users = models.ManyToManyField(User, through="Answer",
+                                   related_name="user_questions")  # Use settings.AUTH_USER_MODEL
 
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -244,7 +246,6 @@ class Question(models.Model):
 
 
 class Option(models.Model):
-
     value = models.CharField(max_length=256, null=False, blank=True)
     sequence_no = models.IntegerField(null=False, default=0)
 
@@ -263,17 +264,14 @@ class Option(models.Model):
 
 
 class Answer(models.Model):
-
     answer = models.CharField(max_length=500, blank=True, null=True)
 
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="user_answers")
     question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
     option = models.ForeignKey(Option, on_delete=models.SET_NULL, null=True)
 
-
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-
 
     class Meta:
         unique_together = ["user", "question", "option"]
@@ -283,4 +281,3 @@ class Answer(models.Model):
             return f"{self.id}. U = {self.user.id} Q = {self.question.id} A = {self.answer[:3]}.."
         else:
             return f"{self.id}. U = {self.user.id} Q = {self.question.id} O = {self.option.id}"
-
