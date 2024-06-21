@@ -65,7 +65,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            # os.path.join(BASE_DIR, 'templates'),  # Common templates directory
+            # os.path.join(BASE_DIR, 'templates'),  # Common templates
+            # directory
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -183,7 +184,7 @@ SIMPLE_JWT = {
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
-    "TOKEN_USER_CLASS": "apis.models.User", #TODO: This must come auth.user table
+    "TOKEN_USER_CLASS": "apis.models.User",  # TODO: This must come auth.user table
 
     "JTI_CLAIM": "jti",
 

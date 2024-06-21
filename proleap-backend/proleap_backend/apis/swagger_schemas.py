@@ -82,7 +82,7 @@ card_schema = openapi.Schema(
 )
 
 user_activity_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT, 
+    type=openapi.TYPE_OBJECT,
     properties={
         "id": openapi.Schema(type=openapi.TYPE_INTEGER),
         "activity_id": openapi.Schema(type=openapi.TYPE_INTEGER),
@@ -91,7 +91,7 @@ user_activity_schema = openapi.Schema(
         "status": openapi.Schema(type=openapi.TYPE_STRING),
         "created_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
         "updated_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME)
-})
+    })
 
 
 activity_schema = openapi.Schema(
@@ -114,9 +114,6 @@ activity_schema = openapi.Schema(
 )
 
 
-
-
-
 # Define the schema for the overall response
 activity_answer_response_schema = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -127,9 +124,7 @@ activity_answer_response_schema = openapi.Schema(
 )
 
 batch_activity_response_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        'current_activity_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-        'activities': openapi.Schema(type=openapi.TYPE_ARRAY, items=activity_schema),
-    }
-)
+    type=openapi.TYPE_OBJECT, properties={
+        'current_activity_id': openapi.Schema(
+            type=openapi.TYPE_INTEGER), 'activities': openapi.Schema(
+                type=openapi.TYPE_ARRAY, items=activity_schema), })

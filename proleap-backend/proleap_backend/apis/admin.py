@@ -1,8 +1,8 @@
 from django.contrib import admin
 
 from .models import (
-    User, 
-    Batch, UserBatch, 
+    User,
+    Batch, UserBatch,
     Activity, UserActivity,
     Card, UserCard,
     Question, Option, Answer
@@ -20,4 +20,3 @@ admin.site.register(UserCard)
 admin.site.register(Question)
 admin.site.register(Option)
 admin.site.register(Answer)
-

@@ -23,11 +23,12 @@ from .swagger_schemas import batch_activity_response_schema
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
 from .serializers import (
-    UserSerializer, BatchSerializer, UserBatchSerializer, 
+    UserSerializer, BatchSerializer, UserBatchSerializer,
     ActivitySerializer, UserActivitySerializer,
-    CardSerializer, UserCardSerializer, 
+    CardSerializer, UserCardSerializer,
     QuestionSerializer, OptionSerializer, AnswerSerializer
 )
+
 
 class UserListAPIView(APIView):
     def get_permissions(self):
@@ -45,7 +46,8 @@ class UserListAPIView(APIView):
             serializer = UserSerializer(users, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new user",
@@ -64,16 +66,21 @@ class UserListAPIView(APIView):
                     'access': str(refresh.access_token),
                     'user': serializer.data
                 }, status=status.HTTP_201_CREATED)
-                # return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                # return Response(serializer.data,
+                # status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserDetailAPIView(APIView):
-    permission_classes = [AllowAny] #Todo: Authenticate to ISauth
+    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
 
     @swagger_auto_schema(
         operation_description="Retrieve a user by ID",
@@ -99,12 +106,14 @@ class UserDetailAPIView(APIView):
             serializer = UserSerializer(user)
             return Response(serializer.data)
         except TokenError as e:
-            return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Invalid token'},
+                            status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'User not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a user by ID",
@@ -118,11 +127,15 @@ class UserDetailAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a user by ID",
@@ -134,55 +147,66 @@ class UserDetailAPIView(APIView):
             user.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class SignInAPIView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        tags=['auth',],
+        tags=[
+            'auth',
+        ],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=['email', 'password'],
+            required=[
+                'email',
+                'password'],
             properties={
-                'email': openapi.Schema(type=openapi.TYPE_STRING, description='User email'),
-                'password': openapi.Schema(type=openapi.TYPE_STRING, description='User password'),
-            }
-        ),
+                'email': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='User email'),
+                'password': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='User password'),
+            }),
         responses={
             200: openapi.Response(
                 description='Successful login',
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'refresh': openapi.Schema(type=openapi.TYPE_STRING, description='Refresh token'),
-                        'access': openapi.Schema(type=openapi.TYPE_STRING, description='Access token'),
-                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID'),
-                    }
-                )
-            ),
+                        'refresh': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Refresh token'),
+                        'access': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Access token'),
+                        'user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description='User ID'),
+                    })),
             400: 'Invalid input',
-            401: 'Unauthorized'
-        }
-    )
+            401: 'Unauthorized'})
     def post(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response({'error': 'User not found'},
+                            status=status.HTTP_404_NOT_FOUND)
+
         try:
-            latest_user_batch = UserBatch.objects.filter(user=user).latest('updated_at')
+            latest_user_batch = UserBatch.objects.filter(
+                user=user).latest('updated_at')
             batch_id = latest_user_batch.id
             batch_name = latest_user_batch.batch.name
         except UserBatch.DoesNotExist:
             return JsonResponse({'error': 'UserBatch not found'}, status=404)
 
-
-        if (user.password == password):     #TODO: Use user.check_password()
+        if (user.password == password):  # TODO: Use user.check_password()
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
@@ -193,23 +217,24 @@ class SignInAPIView(APIView):
                 'batch_name': batch_name
             }, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+            return Response({'error': 'Invalid credentials'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
 
 class BatchListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all batches",
-        responses={200: BatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all batches",
+                         responses={200: BatchSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             batches = Batch.objects.all()
             serializer = BatchSerializer(batches, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new batch",
@@ -225,11 +250,16 @@ class BatchListCreateAPIView(APIView):
             serializer = BatchSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class BatchDetailAPIView(APIView):
     permission_classes = [AllowAny]
@@ -248,9 +278,11 @@ class BatchDetailAPIView(APIView):
             serializer = BatchSerializer(batch)
             return Response(serializer.data)
         except Batch.DoesNotExist:
-            return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Batch not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a batch by ID",
@@ -269,11 +301,15 @@ class BatchDetailAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Batch.DoesNotExist:
-            return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Batch not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a batch by ID",
@@ -289,9 +325,11 @@ class BatchDetailAPIView(APIView):
             batch.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Batch.DoesNotExist:
-            return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Batch not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserBatchListCreateAPIView(APIView):
@@ -299,16 +337,18 @@ class UserBatchListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        operation_description="List all user batches",
-        responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+        operation_description="List all user batches", responses={
+            200: UserBatchSerializer(
+                many=True), 500: openapi.Response(
+                description='Internal Server Error')})
     def get(self, request):
         try:
             user_batches = UserBatch.objects.all()
             serializer = UserBatchSerializer(user_batches, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new user batch",
@@ -320,16 +360,20 @@ class UserBatchListCreateAPIView(APIView):
             serializer = UserBatchSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserBatchDetailAPIView(APIView):
 
-    permission_classes = [AllowAny] #Todo: Authenticate to ISauth
-
+    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
 
     @swagger_auto_schema(
         operation_description="Retrieve a user batch by ID",
@@ -345,9 +389,11 @@ class UserBatchDetailAPIView(APIView):
             serializer = UserBatchSerializer(user_batch)
             return Response(serializer.data)
         except UserBatch.DoesNotExist:
-            return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserBatch not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a user batch by ID",
@@ -366,11 +412,15 @@ class UserBatchDetailAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except UserBatch.DoesNotExist:
-            return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserBatch not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a user batch by ID",
@@ -386,41 +436,42 @@ class UserBatchDetailAPIView(APIView):
             user_batch.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except UserBatch.DoesNotExist:
-            return Response({'error': 'UserBatch not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserBatch not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class BatchUserListAPIView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        tags=['batches'],
-        operation_description="List all users of a batch",
-        responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(tags=['batches'],
+                         operation_description="List all users of a batch",
+                         responses={200: UserBatchSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get_users(self, request, batch_id):
         try:
             user_batches = UserBatch.objects.filter(batch_id=batch_id)
             serializer = UserBatchSerializer(user_batches, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="List all batches of a user",
-        responses={200: UserBatchSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(tags=['users'],
+                         operation_description="List all batches of a user",
+                         responses={200: UserBatchSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get_batches(self, request, user_id):
         try:
             user_batches = UserBatch.objects.filter(user_id=user_id)
             serializer = UserBatchSerializer(user_batches, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         tags=['batches-users-list',],
@@ -429,8 +480,8 @@ class BatchUserListAPIView(APIView):
             openapi.Parameter('user_id', openapi.IN_QUERY, description="ID of the user", type=openapi.TYPE_INTEGER)
         ],
         responses={
-            200: UserBatchSerializer(many=True), 
-            400: openapi.Response(description='Bad Request'), 
+            200: UserBatchSerializer(many=True),
+            400: openapi.Response(description='Bad Request'),
             500: openapi.Response(description='Internal Server Error')
         },
         operation_description="List users of a batch or batches of a user based on the provided query parameter"
@@ -438,31 +489,35 @@ class BatchUserListAPIView(APIView):
     def get(self, request, *args, **kwargs):
         batch_id = request.query_params.get('batch_id')
         user_id = request.query_params.get('user_id')
-        
+
         if batch_id and user_id:
-            return Response({'error': 'Only one of batch_id or user_id should be provided'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    'error': 'Only one of batch_id or user_id should be provided'},
+                status=status.HTTP_400_BAD_REQUEST)
         elif not batch_id and not user_id:
-            return Response({'error': 'Either batch_id or user_id must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Either batch_id or user_id must be provided'},
+                            status=status.HTTP_400_BAD_REQUEST)
         elif batch_id:
             return self.get_users(request, batch_id)
         elif user_id:
             return self.get_batches(request, user_id)
-        
+
 
 class ActivityListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all activities",
-        responses={200: ActivitySerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all activities",
+                         responses={200: ActivitySerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             activities = Activity.objects.all()
             serializer = ActivitySerializer(activities, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new activity",
@@ -478,12 +533,17 @@ class ActivityListCreateAPIView(APIView):
             serializer = ActivitySerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-  
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class ActivityDetailAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -501,9 +561,11 @@ class ActivityDetailAPIView(APIView):
             serializer = ActivitySerializer(activity)
             return Response(serializer.data)
         except Activity.DoesNotExist:
-            return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Activity not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update an activity by ID",
@@ -515,18 +577,22 @@ class ActivityDetailAPIView(APIView):
             500: openapi.Response(description='Internal Server Error')
         }
     )
-    def put(self, request, pk):     #TODO: Upon update, shouldn't be able to change Batch FK
+    def put(self, request, pk):  # TODO: Upon update, shouldn't be able to change Batch FK
         try:
             activity = Activity.objects.get(pk=pk)
             serializer = ActivitySerializer(activity, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Activity.DoesNotExist:
-            return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Activity not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete an activity by ID",
@@ -542,31 +608,35 @@ class ActivityDetailAPIView(APIView):
             activity.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Activity.DoesNotExist:
-            return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Activity not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserActivityListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        operation_description="List all user activities",
-        responses={200: UserActivitySerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+        operation_description="List all user activities", responses={
+            200: UserActivitySerializer(
+                many=True), 500: openapi.Response(
+                description='Internal Server Error')})
     def get(self, request):
         try:
             user_activities = UserActivity.objects.all()
             serializer = UserActivitySerializer(user_activities, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new user activity",
         request_body=UserActivitySerializer,
         responses={
-            201: UserActivitySerializer, 
+            201: UserActivitySerializer,
             400: openapi.Response(description='Invalid input'),
             500: openapi.Response(description='Internal Server Error')
         }
@@ -576,11 +646,16 @@ class UserActivityListCreateAPIView(APIView):
             serializer = UserActivitySerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class UserActivityDetailAPIView(APIView):
     permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
@@ -599,9 +674,11 @@ class UserActivityDetailAPIView(APIView):
             serializer = UserActivitySerializer(user_activity)
             return Response(serializer.data)
         except UserActivity.DoesNotExist:
-            return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserActivity not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a user activity by ID",
@@ -616,15 +693,20 @@ class UserActivityDetailAPIView(APIView):
     def put(self, request, pk):
         try:
             user_activity = UserActivity.objects.get(pk=pk)
-            serializer = UserActivitySerializer(user_activity, data=request.data)
+            serializer = UserActivitySerializer(
+                user_activity, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except UserActivity.DoesNotExist:
-            return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserActivity not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a user activity by ID",
@@ -640,25 +722,27 @@ class UserActivityDetailAPIView(APIView):
             user_activity.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except UserActivity.DoesNotExist:
-            return Response({'error': 'UserActivity not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserActivity not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class CardListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all cards",
-        responses={200: CardSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all cards",
+                         responses={200: CardSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             cards = Card.objects.all()
             serializer = CardSerializer(cards, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new card",
@@ -674,10 +758,15 @@ class CardListCreateAPIView(APIView):
             serializer = CardSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CardDetailAPIView(APIView):
@@ -697,9 +786,11 @@ class CardDetailAPIView(APIView):
             serializer = CardSerializer(card)
             return Response(serializer.data)
         except Card.DoesNotExist:
-            return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Card not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update an card by ID",
@@ -711,18 +802,22 @@ class CardDetailAPIView(APIView):
             500: openapi.Response(description='Internal Server Error')
         }
     )
-    def put(self, request, pk):     #TODO: Upon update, shouldn't be able to change Batch FK
+    def put(self, request, pk):  # TODO: Upon update, shouldn't be able to change Batch FK
         try:
             card = Card.objects.get(pk=pk)
             serializer = CardSerializer(card, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Card.DoesNotExist:
-            return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Card not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete an card by ID",
@@ -734,35 +829,38 @@ class CardDetailAPIView(APIView):
     )
     def delete(self, request, pk):
         try:
-            card = Card.objects.get(pk=pk)      #TODO: Mark all delete views as inactive=true, add a field
-            card.delete()       #TODO: Return the deleted object instead of None
+            # TODO: Mark all delete views as inactive=true, add a field
+            card = Card.objects.get(pk=pk)
+            card.delete()  # TODO: Return the deleted object instead of None
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Card.DoesNotExist:
-            return Response({'error': 'Card not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Card not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserCardListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all user card",
-        responses={200: UserCardSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all user card",
+                         responses={200: UserCardSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             user_cards = UserCard.objects.all()
             serializer = UserCardSerializer(user_cards, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new user card",
         request_body=UserCardSerializer,
         responses={
-            201: UserCardSerializer, 
+            201: UserCardSerializer,
             400: openapi.Response(description='Invalid input'),
             500: openapi.Response(description='Internal Server Error')
         }
@@ -772,10 +870,15 @@ class UserCardListCreateAPIView(APIView):
             serializer = UserCardSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserCardDetailAPIView(APIView):
@@ -795,9 +898,11 @@ class UserCardDetailAPIView(APIView):
             serializer = UserCardSerializer(user_card)
             return Response(serializer.data)
         except UserCard.DoesNotExist:
-            return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserCard not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a user card by ID",
@@ -816,11 +921,15 @@ class UserCardDetailAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except UserCard.DoesNotExist:
-            return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserCard not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a user card by ID",
@@ -836,25 +945,27 @@ class UserCardDetailAPIView(APIView):
             user_card.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except UserCard.DoesNotExist:
-            return Response({'error': 'UserCard not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'UserCard not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class QuestionListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all questions",
-        responses={200: QuestionSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all questions",
+                         responses={200: QuestionSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             questions = Question.objects.all()
             serializer = QuestionSerializer(questions, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new question",
@@ -870,10 +981,15 @@ class QuestionListCreateAPIView(APIView):
             serializer = QuestionSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class QuestionDetailAPIView(APIView):
@@ -893,9 +1009,11 @@ class QuestionDetailAPIView(APIView):
             serializer = QuestionSerializer(question)
             return Response(serializer.data)
         except Question.DoesNotExist:
-            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Question not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a question by ID",
@@ -914,11 +1032,15 @@ class QuestionDetailAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Question.DoesNotExist:
-            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Question not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a question by ID",
@@ -934,25 +1056,27 @@ class QuestionDetailAPIView(APIView):
             question.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Question.DoesNotExist:
-            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Question not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class OptionListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all options",
-        responses={200: OptionSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all options",
+                         responses={200: OptionSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             options = Option.objects.all()
             serializer = OptionSerializer(options, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new option",
@@ -968,10 +1092,15 @@ class OptionListCreateAPIView(APIView):
             serializer = OptionSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OptionDetailAPIView(APIView):
@@ -991,9 +1120,11 @@ class OptionDetailAPIView(APIView):
             serializer = OptionSerializer(option)
             return Response(serializer.data)
         except Option.DoesNotExist:
-            return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Option not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update an option by ID",
@@ -1012,11 +1143,15 @@ class OptionDetailAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Option.DoesNotExist:
-            return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Option not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete an option by ID",
@@ -1032,25 +1167,27 @@ class OptionDetailAPIView(APIView):
             option.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Option.DoesNotExist:
-            return Response({'error': 'Option not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Option not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class AnswerListCreateAPIView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_description="List all answers",
-        responses={200: AnswerSerializer(many=True), 500: openapi.Response(description='Internal Server Error')}
-    )
+    @swagger_auto_schema(operation_description="List all answers",
+                         responses={200: AnswerSerializer(many=True),
+                                    500: openapi.Response(description='Internal Server Error')})
     def get(self, request):
         try:
             answers = Answer.objects.all()
             serializer = AnswerSerializer(answers, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new answer",
@@ -1071,9 +1208,9 @@ class AnswerListCreateAPIView(APIView):
                 # question = serializer.instance.question
                 # card = question.card
                 # questions_in_card = card.questions.all()
-                
+
                 # user_answers = Answer.objects.filter(
-                #     user=serializer.instance.user, 
+                #     user=serializer.instance.user,
                 #     question__in=questions_in_card
                 # ).distinct('question').count()
 
@@ -1082,10 +1219,15 @@ class AnswerListCreateAPIView(APIView):
                 #     user_card.completed_questions = user_answers
                 #     user_card.save(update_fields=['completed_questions'])
 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class AnswerDetailAPIView(APIView):
@@ -1105,9 +1247,11 @@ class AnswerDetailAPIView(APIView):
             serializer = AnswerSerializer(answer)
             return Response(serializer.data)
         except Answer.DoesNotExist:
-            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Answer not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update an answer by ID",
@@ -1132,7 +1276,7 @@ class AnswerDetailAPIView(APIView):
                 # questions_in_card = card.questions.all()
 
                 # user_answers = Answer.objects.filter(
-                #     user=serializer.instance.user, 
+                #     user=serializer.instance.user,
                 #     question__in=questions_in_card
                 # ).distinct('question').count()
 
@@ -1142,11 +1286,15 @@ class AnswerDetailAPIView(APIView):
                 #     user_card.save(update_fields=['completed_questions'])
 
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST)
         except Answer.DoesNotExist:
-            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Answer not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete an answer by ID",
@@ -1162,9 +1310,11 @@ class AnswerDetailAPIView(APIView):
             answer.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Answer.DoesNotExist:
-            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Answer not found'},
+                            status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserRegister(APIView):
@@ -1183,23 +1333,20 @@ class UserRegister(APIView):
                     properties={
                         'success': openapi.Schema(
                             type=openapi.TYPE_STRING,
-                            description='Message indicating successful registration and email sending'
-                        )
-                    }
-                )
-            ),
+                            description='Message indicating successful registration and email sending')})),
             400: 'Invalid input',
             415: 'Unsupported Media Type',
-        }
-    )
+        })
     def post(self, request):
         file = request.FILES.get('file')
 
         if not file:
-            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'No file uploaded'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         if not file.name.endswith('.csv'):
-            return Response({'error': 'This is not a CSV file'}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+            return Response({'error': 'This is not a CSV file'},
+                            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
         try:
             data = file.read().decode('utf-8')
@@ -1207,7 +1354,8 @@ class UserRegister(APIView):
             csv_reader = csv.reader(io_string, delimiter=',')
             header = next(csv_reader)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': str(e)},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         success_count = 0
         errors = []
@@ -1238,7 +1386,12 @@ class UserRegister(APIView):
                     'email': user.email,
                     'exp': datetime.now() + timedelta(hours=24)  # Token valid for 24 hours
                 }
-                token = jwt.encode(token_payload, settings.SECRET_KEY, algorithm='HS256') #TODO: make the token assigned to a user in outstanding token table
+                # TODO: make the token assigned to a user in outstanding token
+                # table
+                token = jwt.encode(
+                    token_payload,
+                    settings.SECRET_KEY,
+                    algorithm='HS256')
 
                 # Build verification URL
                 current_site = get_current_site(request)
@@ -1251,7 +1404,8 @@ class UserRegister(APIView):
                 #     'user': user,
                 #     'verification_url': verification_url,
                 # })
-                message = f'Please click the following link to verify your account: {verification_url}'
+                message = f'Please click the following link to verify your account: {
+                    verification_url}'
 
                 email = EmailMessage(
                     subject,
@@ -1266,23 +1420,32 @@ class UserRegister(APIView):
                 errors.append(f'Error processing row: {str(e)}')
 
         if errors:
-            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'errors': errors},
+                            status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'success': f'{success_count} users have been registered and emails sent'}, status=status.HTTP_201_CREATED)
-        
+            return Response(
+                {
+                    'success': f'{success_count} users have been registered and emails sent'},
+                status=status.HTTP_201_CREATED)
+
 
 class VerifyEmail(APIView):
 
-    permission_classes=[AllowAny]
+    permission_classes = [AllowAny]
 
     def get(self, request, token):
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            payload = jwt.decode(
+                token,
+                settings.SECRET_KEY,
+                algorithms=['HS256'])
             user = get_object_or_404(User, id=payload['user_id'])
         except jwt.ExpiredSignatureError:
-            return JsonResponse({'error': 'Verification link has expired'}, status=400)
+            return JsonResponse(
+                {'error': 'Verification link has expired'}, status=400)
         except jwt.InvalidTokenError:
-            return JsonResponse({'error': 'Invalid verification link'}, status=400)
+            return JsonResponse(
+                {'error': 'Invalid verification link'}, status=400)
         except User.ObjectDoesNotExist:
             return JsonResponse({'error': 'User not found'}, status=404)
 
@@ -1290,12 +1453,12 @@ class VerifyEmail(APIView):
         user.save(update_fields=['is_verified'])
 
         try:
-            latest_user_batch = UserBatch.objects.filter(user=user).latest('updated_at')
+            latest_user_batch = UserBatch.objects.filter(
+                user=user).latest('updated_at')
             batch_id = latest_user_batch.id
             batch_name = latest_user_batch.batch.name
         except UserBatch.DoesNotExist:
             return JsonResponse({'error': 'UserBatch not found'}, status=404)
-
 
         response_data = {
             'message': 'Email verification successful',
@@ -1306,8 +1469,8 @@ class VerifyEmail(APIView):
         }
 
         return JsonResponse(response_data)
-    
-    
+
+
 class UserCardQuestionProgress(APIView):
     permission_classes = [AllowAny]
 
@@ -1317,25 +1480,29 @@ class UserCardQuestionProgress(APIView):
             200: activity_answer_response_schema,
             400: 'Bad Request',
             404: 'Not Found',
-            500: 'Internal Server Error'
-        }
-    )
+            500: 'Internal Server Error'})
     def get(self, request, user_id, activity_id):
         try:
-            latest_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('-updated_at').first()
-            first_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('created_at').first()
-            last_card_id = latest_user_card.card.id if latest_user_card else (first_user_card.card.id if first_user_card else None)
+            latest_user_card = UserCard.objects.filter(
+                user_id=user_id, card__activity_id=activity_id).order_by('-updated_at').first()
+            first_user_card = UserCard.objects.filter(
+                user_id=user_id, card__activity_id=activity_id).order_by('created_at').first()
+            last_card_id = latest_user_card.card.id if latest_user_card else (
+                first_user_card.card.id if first_user_card else None)
 
             if not last_card_id:
-                return Response({'error': 'No UserCard found for the user'}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {'error': 'No UserCard found for the user'}, status=status.HTTP_404_NOT_FOUND)
 
             try:
                 activity = Activity.objects.get(id=activity_id)
             except Activity.DoesNotExist:
-                return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Activity not found'},
+                                status=status.HTTP_404_NOT_FOUND)
 
             cards = Card.objects.filter(activity=activity)
-            user_cards = UserCard.objects.filter(card__in=cards, user_id=user_id)
+            user_cards = UserCard.objects.filter(
+                card__in=cards, user_id=user_id)
 
             response_data = {
                 'recent_card_id': last_card_id,
@@ -1356,12 +1523,15 @@ class UserCardQuestionProgress(APIView):
                     serialized_question = QuestionSerializer(question).data
 
                     options = Option.objects.filter(question=question)
-                    serialized_options = OptionSerializer(options, many=True).data
+                    serialized_options = OptionSerializer(
+                        options, many=True).data
                     if serialized_options:
                         serialized_question['options'] = serialized_options
 
-                    answers = Answer.objects.filter(question=question, user_id=user_id)
-                    serialized_answers = AnswerSerializer(answers, many=True).data
+                    answers = Answer.objects.filter(
+                        question=question, user_id=user_id)
+                    serialized_answers = AnswerSerializer(
+                        answers, many=True).data
                     serialized_question['answers'] = serialized_answers
 
                     serialized_questions.append(serialized_question)
@@ -1372,54 +1542,62 @@ class UserCardQuestionProgress(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class UserActivityProgressList(APIView):
-    #TODO: @Ajay code here
+    # TODO: @Ajay code here
     permission_classes = [AllowAny]
+
     @swagger_auto_schema(
         operation_description="Retrieve the user's activity progress for a batch.",
         responses={
             200: batch_activity_response_schema,
             400: 'Bad Request',
             404: 'Not Found',
-            500: 'Internal Server Error'
-        }
-    )
+            500: 'Internal Server Error'})
     def get(self, request, user_id, batch_id):
         try:
-            latest_user_activity = UserActivity.objects.filter(user_id=user_id, activity__batch_id=batch_id).order_by('-updated_at').first()
-            first_user_activity = UserActivity.objects.filter(user_id=user_id, activity__batch_id=batch_id).order_by('created_at').first()
-            last_activity_id = latest_user_activity.activity.id if latest_user_activity else (first_user_activity.activity.id if first_user_activity else None)
+            latest_user_activity = UserActivity.objects.filter(
+                user_id=user_id, activity__batch_id=batch_id).order_by('-updated_at').first()
+            first_user_activity = UserActivity.objects.filter(
+                user_id=user_id, activity__batch_id=batch_id).order_by('created_at').first()
+            last_activity_id = latest_user_activity.activity.id if latest_user_activity else (
+                first_user_activity.activity.id if first_user_activity else None)
 
             if not last_activity_id:
-                return Response({'error': 'No UserActivity found for the user'}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {'error': 'No UserActivity found for the user'}, status=status.HTTP_404_NOT_FOUND)
 
             try:
                 batch = Batch.objects.get(id=batch_id)
             except Batch.DoesNotExist:
-                return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Batch not found'},
+                                status=status.HTTP_404_NOT_FOUND)
 
-            activities = Activity.objects.filter(batch = batch)
+            activities = Activity.objects.filter(batch=batch)
 
             response_data = {
-                    'current_activity_id': last_activity_id,
-                    'activities': []
-                }
+                'current_activity_id': last_activity_id,
+                'activities': []
+            }
 
-            user_activities = UserActivity.objects.filter(user_id = user_id, activity__in = activities )
-            for activity in activities :
+            user_activities = UserActivity.objects.filter(
+                user_id=user_id, activity__in=activities)
+            for activity in activities:
                 serialized_activity = ActivitySerializer(activity).data
 
-                user_activity = user_activities.filter(activity = activity).first()
+                user_activity = user_activities.filter(
+                    activity=activity).first()
                 if user_activity:
-                    serialized_user_activity = UserActivitySerializer(user_activity).data
+                    serialized_user_activity = UserActivitySerializer(
+                        user_activity).data
                     serialized_activity['user_activity_progress'] = serialized_user_activity
-                
+
                 response_data['activities'].append(serialized_activity)
-            
-            
+
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
