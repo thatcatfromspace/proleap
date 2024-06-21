@@ -5,28 +5,20 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.tokens import AccessToken, TokenError
-from rest_framework.decorators import api_view
-from django.core.mail import send_mail
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 import csv
 import io
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.urls import reverse
-from django.shortcuts import redirect
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode
-from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
-from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode
+from .swagger_schemas import activity_answer_response_schema
+from .swagger_schemas import batch_activity_response_schema
 
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
@@ -181,6 +173,14 @@ class SignInAPIView(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            latest_user_batch = UserBatch.objects.filter(user=user).latest('updated_at')
+            batch_id = latest_user_batch.id
+            batch_name = latest_user_batch.batch.name
+        except UserBatch.DoesNotExist:
+            return JsonResponse({'error': 'UserBatch not found'}, status=404)
+
 
         if (user.password == password):     #TODO: Use user.check_password()
             refresh = RefreshToken.for_user(user)
@@ -188,7 +188,9 @@ class SignInAPIView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user_id': user.id,
-                'username': user.username
+                'username': user.username,
+                'batch_id': batch_id,
+                'batch_name': batch_name
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -480,8 +482,8 @@ class ActivityListCreateAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+        
+  
 class ActivityDetailAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -1358,10 +1360,137 @@ class VerifyEmail(APIView):
         user.is_verified = True
         user.save(update_fields=['is_verified'])
 
+        try:
+            latest_user_batch = UserBatch.objects.filter(user=user).latest('updated_at')
+            batch_id = latest_user_batch.id
+            batch_name = latest_user_batch.batch.name
+        except UserBatch.DoesNotExist:
+            return JsonResponse({'error': 'UserBatch not found'}, status=404)
+
+
         response_data = {
             'message': 'Email verification successful',
             'user_id': user.id,
             'username': user.username,
+            'batch_id': batch_id,
+            'batch_name': batch_name
         }
 
         return JsonResponse(response_data)
+    
+    
+class UserCardQuestionProgress(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve the latest card and user progress for a specific activity.",
+        responses={
+            200: activity_answer_response_schema,
+            400: 'Bad Request',
+            404: 'Not Found',
+            500: 'Internal Server Error'
+        }
+    )
+    def get(self, request, user_id, activity_id):
+        try:
+            latest_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('-updated_at').first()
+            first_user_card = UserCard.objects.filter(user_id=user_id, card__activity_id=activity_id).order_by('created_at').first()
+            last_card_id = latest_user_card.card.id if latest_user_card else (first_user_card.card.id if first_user_card else None)
+
+            if not last_card_id:
+                return Response({'error': 'No UserCard found for the user'}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                activity = Activity.objects.get(id=activity_id)
+            except Activity.DoesNotExist:
+                return Response({'error': 'Activity not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            cards = Card.objects.filter(activity=activity)
+            user_cards = UserCard.objects.filter(card__in=cards, user_id=user_id)
+
+            response_data = {
+                'recent_card_id': last_card_id,
+                'cards': []
+            }
+
+            for card in cards:
+                serialized_card = CardSerializer(card).data
+
+                user_card = user_cards.filter(card=card).first()
+                if user_card:
+                    serialized_user_card = UserCardSerializer(user_card).data
+                    serialized_card['user_card_progress'] = serialized_user_card
+
+                questions = Question.objects.filter(card=card)
+                serialized_questions = []
+                for question in questions:
+                    serialized_question = QuestionSerializer(question).data
+
+                    options = Option.objects.filter(question=question)
+                    serialized_options = OptionSerializer(options, many=True).data
+                    if serialized_options:
+                        serialized_question['options'] = serialized_options
+
+                    answers = Answer.objects.filter(question=question, user_id=user_id)
+                    serialized_answers = AnswerSerializer(answers, many=True).data
+                    serialized_question['answers'] = serialized_answers
+
+                    serialized_questions.append(serialized_question)
+
+                serialized_card['questions'] = serialized_questions
+                response_data['cards'].append(serialized_card)
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class UserActivityProgressList(APIView):
+    #TODO: @Ajay code here
+    permission_classes = [AllowAny]
+    @swagger_auto_schema(
+        operation_description="Retrieve the user's activity progress for a batch.",
+        responses={
+            200: batch_activity_response_schema,
+            400: 'Bad Request',
+            404: 'Not Found',
+            500: 'Internal Server Error'
+        }
+    )
+    def get(self, request, user_id, batch_id):
+        try:
+            latest_user_activity = UserActivity.objects.filter(user_id=user_id, activity__batch_id=batch_id).order_by('-updated_at').first()
+            first_user_activity = UserActivity.objects.filter(user_id=user_id, activity__batch_id=batch_id).order_by('created_at').first()
+            last_activity_id = latest_user_activity.activity.id if latest_user_activity else (first_user_activity.activity.id if first_user_activity else None)
+
+            if not last_activity_id:
+                return Response({'error': 'No UserActivity found for the user'}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                batch = Batch.objects.get(id=batch_id)
+            except Batch.DoesNotExist:
+                return Response({'error': 'Batch not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            activities = Activity.objects.filter(batch = batch)
+
+            response_data = {
+                    'current_activity_id': last_activity_id,
+                    'activities': []
+                }
+
+            user_activities = UserActivity.objects.filter(user_id = user_id, activity__in = activities )
+            for activity in activities :
+                serialized_activity = ActivitySerializer(activity).data
+
+                user_activity = user_activities.filter(activity = activity).first()
+                if user_activity:
+                    serialized_user_activity = UserActivitySerializer(user_activity).data
+                    serialized_activity['user_activity_progress'] = serialized_user_activity
+                
+                response_data['activities'].append(serialized_activity)
+            
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
