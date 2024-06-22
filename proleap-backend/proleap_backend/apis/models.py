@@ -257,7 +257,6 @@ class QuestionType(models.TextChoices):
     NUMBER = "NUMBER", _("number")
     RADIO = "RADIO", _("radio")
     DATE = "DATE", _("date")
-    MULTIPLE_CHOICE = "MULTIPLE_CHOICE", _("multiple_choice")
     FILE = "FILE", _("file")
     CHECKBOXES = "CHECKBOXES", _("checkboxes")
     URL = "URL", _("url")
