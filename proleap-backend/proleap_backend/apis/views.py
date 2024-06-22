@@ -1487,10 +1487,9 @@ class UserCardQuestionProgress(APIView):
         try:
             latest_user_card = UserCard.objects.filter(
                 user_id=user_id, card__activity_id=activity_id).order_by('-updated_at').first()
-            first_user_card = UserCard.objects.filter(
-                user_id=user_id, card__activity_id=activity_id).order_by('created_at').first()
+            first_user_card = Card.objects.filter(activity=activity_id).order_by('created_at').first()
             last_card_id = latest_user_card.card.id if latest_user_card else (
-                first_user_card.card.id if first_user_card else None)
+                first_user_card.id if first_user_card else None)
 
             if not last_card_id:
                 return Response(
@@ -1549,7 +1548,6 @@ class UserCardQuestionProgress(APIView):
 
 
 class UserActivityProgressList(APIView):
-    # TODO: @Ajay code here
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
@@ -1563,10 +1561,10 @@ class UserActivityProgressList(APIView):
         try:
             latest_user_activity = UserActivity.objects.filter(
                 user_id=user_id, activity__batch_id=batch_id).order_by('-updated_at').first()
-            first_user_activity = UserActivity.objects.filter(
-                user_id=user_id, activity__batch_id=batch_id).order_by('created_at').first()
+            first_user_activity = Activity.objects.filter(
+                batch_id=batch_id).order_by('created_at').first()
             last_activity_id = latest_user_activity.activity.id if latest_user_activity else (
-                first_user_activity.activity.id if first_user_activity else None)
+                first_user_activity.id if first_user_activity else None)
 
             if not last_activity_id:
                 return Response(
