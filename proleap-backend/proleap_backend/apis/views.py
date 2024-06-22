@@ -476,8 +476,10 @@ class BatchUserListAPIView(APIView):
     @swagger_auto_schema(
         tags=['batches-users-list',],
         manual_parameters=[
-            openapi.Parameter('batch_id', openapi.IN_QUERY, description="ID of the batch", type=openapi.TYPE_INTEGER),
-            openapi.Parameter('user_id', openapi.IN_QUERY, description="ID of the user", type=openapi.TYPE_INTEGER)
+            openapi.Parameter('batch_id', openapi.IN_QUERY,
+                              description="ID of the batch", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('user_id', openapi.IN_QUERY,
+                              description="ID of the user", type=openapi.TYPE_INTEGER)
         ],
         responses={
             200: UserBatchSerializer(many=True),
