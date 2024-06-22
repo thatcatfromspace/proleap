@@ -49,17 +49,17 @@ export const LoginForm = ({ setCookie, setUserId, setUserName }) => {
             secure: true,
             sameSite: true,
           });
-          setCookie("userName", response.user_id, {
+          setCookie("userName", response.username, {
             path: "/",
             secure: true,
             sameSite: true,
           });
-          setCookie("batchId", response.user_id, {
+          setCookie("batchId", response.batch_id, {
             path: "/",
             secure: true,
             sameSite: true,
           });
-          setCookie("batchName", response.user_id, {
+          setCookie("batchName", response.batch_name, {
             path: "/",
             secure: true,
             sameSite: true,

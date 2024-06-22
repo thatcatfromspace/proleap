@@ -61,8 +61,8 @@ const App = () => {
             <Dashboard
               uid={userId ? userId: cookies.userId}
               userName={userName}
-              batchId={cookies.batchId}
-              batchName={cookies.batchName}
+              batchID={cookies.batchId}
+              batchname={cookies.batchName}
               isAuthenticated={isAuthenticated}
             />
           }

@@ -4,13 +4,13 @@ import axios from "axios";
 import { Cards } from "./Cards";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
-export const Dashboard = ({ uid, userName, isAuthenticated,batchId,batchName }) => {
+export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }) => {
   const [activeElement, setActiveElement] = useState(0);
   const isAuth = isAuthenticated;
   const userId = uid;
   const uName = userName;
-  const batchId = batchId;
-  const batchName = batchName;
+  const batchId = batchID;
+  const batchName = batchname;
 
   const navigate = useNavigate();
   const changeActiveElement = (e, itemId) => {
@@ -21,21 +21,23 @@ export const Dashboard = ({ uid, userName, isAuthenticated,batchId,batchName }) 
   const [currentCardId, setCurrentCardId] = useState();
   const [showActivity, setShowActivity] = useState(true);
   const [showCard, setShowCard] = useState(false);
-  const [activity, setActivity] = useState([]);
+  const [activity, setActivity] = useState(null);
   const [currentActivity, setCurrentActivity] = useState();
   useEffect(() => {
-    axios
-      .get(
-        `http://${
-          import.meta.env.VITE_API_URL
-        }/api/user/${userId}/`,
-      )
-      .then((res) => {
-        let response = res.data;
-        console.log(res.data);
-        setActivity(response);
-        //   TODO: add batch id to req
-      });
+    if (batchID != null) {
+      console.log(batchId);
+      axios
+        .get(
+          `http://${import.meta.env.VITE_API_URL
+          }/apis/user/${userId}/batch/${batchId}/activities/`,
+        )
+        .then((res) => {
+          let response = res.data;
+          console.log(res.data);
+          setActivity(response);
+          //   TODO: add batch id to req
+        });
+    }
   }, []);
   useEffect(() => {
     // setShowActivity(false);
@@ -60,28 +62,29 @@ export const Dashboard = ({ uid, userName, isAuthenticated,batchId,batchName }) 
           <div className="w-full mt-12">
             {showActivity && (
               <ul className="flex flex-wrap justify-start gap-[2%] w-full  ">
-                {activity.length != 0
-                  ? activity.map((val, index) => (
-                      <button
-                        onClick={(e) => {
-                          setCurrentCardId(val.current_card);
-                          setCurrentActivity(val);
-                          console.log(val.card_ids.indexOf(val.current_card));
-                          setShowActivity(false);
-                          setShowCard(true);
-                        }}
-                        className="flex w-[49%] my-2 flex-col flex-wrap h-[25vh] shadow-2xl   px-8 py-4 border-b-[12px] rounded-xl border-logingreen "
-                      >
-                        <li key={index} className="">
-                          <span className="text-[30px] justify-start flex">
-                            {val.name}
-                          </span>
-                          <span className="text- justify-start text-[18.54px] flex">
-                            {val.desc}
-                          </span>
-                        </li>
-                      </button>
-                    ))
+                {activity!= null
+                  ? activity.activities.map((val, index) => (
+                    <button
+                      onClick={(e) => {
+                        setCurrentCardId(val.current_card);
+                        setCurrentActivity(val);
+                        // console.log(val.card_ids.indexOf(val.current_card));
+                        setShowActivity(false);
+                        setShowCard(true);
+                      }}
+                      className="flex w-[49%] my-2 flex-col flex-wrap h-[25vh] shadow-2xl   px-8 py-4 border-b-[12px] rounded-xl border-logingreen "
+                      key={index}
+                    >
+                      <li  className="">
+                        <span className="text-[30px] justify-start flex">
+                          {val.name}
+                        </span>
+                        <span className="text- justify-start text-[18.54px] flex">
+                          {val.desc}
+                        </span>
+                      </li>
+                    </button>
+                  ))
                   : null}
 
                 <li className=" About you flex w-[49%] my-2 flex-wrap h-[25vh] shadow-2xl overflow-y-hidden border-b-[12px] rounded-xl border-[#BABBBF] px-8 py-4">
@@ -266,7 +269,6 @@ export const Dashboard = ({ uid, userName, isAuthenticated,batchId,batchName }) 
           {!showActivity && showCard && activeElement === 0 ? (
             <Cards
               uid={userId}
-              cid={currentCardId}
               Activity={currentActivity}
               setShowActivity={setShowActivity}
               setShowCard={setShowCard}
