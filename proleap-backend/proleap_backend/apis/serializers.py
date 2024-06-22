@@ -36,8 +36,15 @@ class UserBatchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserBatch
-        fields = ['id', 'user_id', 'batch_id', 'completed_activities', 'is_completed', 'status', 'created_at',
-                  'updated_at']
+        fields = [
+            'id',
+            'user_id',
+            'batch_id',
+            'completed_activities',
+            'is_completed',
+            'status',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -46,25 +53,25 @@ class UserBatchSerializer(serializers.ModelSerializer):
 
         try:
             user_batch, created = UserBatch.objects.update_or_create(
-                user_id=user_id,
-                batch_id=batch_id,
-                defaults={
-                    'completed_activities': validated_data.get('completed_activities', 0),
-                    'is_completed': validated_data.get('is_completed', False),
-                    'status': validated_data.get('status', Status.NOT_ATTEMPTED)
-                }
-            )
+                user_id=user_id, batch_id=batch_id, defaults={
+                    'completed_activities': validated_data.get(
+                        'completed_activities', 0), 'is_completed': validated_data.get(
+                        'is_completed', False), 'status': validated_data.get(
+                        'status', Status.NOT_ATTEMPTED)})
             return user_batch
         except Exception as e:
             raise serializers.ValidationError(str(e))
 
     def update(self, instance, validated_data):
-        # Exclude user_id and batch_id from validated_data to keep them immutable
+        # Exclude user_id and batch_id from validated_data to keep them
+        # immutable
         validated_data.pop('user_id', None)
         validated_data.pop('batch_id', None)
 
-        instance.completed_activities = validated_data.get('completed_activities', instance.completed_activities)
-        instance.is_completed = validated_data.get('is_completed', instance.is_completed)
+        instance.completed_activities = validated_data.get(
+            'completed_activities', instance.completed_activities)
+        instance.is_completed = validated_data.get(
+            'is_completed', instance.is_completed)
         instance.status = validated_data.get('status', instance.status)
 
         try:
@@ -92,7 +99,14 @@ class UserActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserActivity
-        fields = ['id', 'activity_id', 'user_id', 'completed_cards', 'status', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'activity_id',
+            'user_id',
+            'completed_cards',
+            'status',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -101,23 +115,23 @@ class UserActivitySerializer(serializers.ModelSerializer):
 
         try:
             user_activity, created = UserActivity.objects.update_or_create(
-                activity_id=activity_id,
-                user_id=user_id,
-                defaults={
-                    'completed_cards': validated_data.get('completed_cards', 0),
-                    'status': validated_data.get('status', Status.NOT_ATTEMPTED)
-                }
-            )
+                activity_id=activity_id, user_id=user_id, defaults={
+                    'completed_cards': validated_data.get(
+                        'completed_cards', 0), 'status': validated_data.get(
+                        'status', Status.NOT_ATTEMPTED)})
             return user_activity
         except Exception as e:
             raise serializers.ValidationError(str(e))
 
     def update(self, instance, validated_data):
-        # Exclude activity_id and user_id from validated_data to keep them immutable
-        validated_data.pop('activity_id', None)     # TODO: Throw an error if not FKs aren't same
+        # Exclude activity_id and user_id from validated_data to keep them
+        # immutable
+        # TODO: Throw an error if not FKs aren't same
+        validated_data.pop('activity_id', None)
         validated_data.pop('user_id', None)
 
-        instance.completed_cards = validated_data.get('completed_cards', instance.completed_cards)
+        instance.completed_cards = validated_data.get(
+            'completed_cards', instance.completed_cards)
         instance.status = validated_data.get('status', instance.status)
 
         try:
@@ -130,9 +144,21 @@ class UserActivitySerializer(serializers.ModelSerializer):
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
-        fields = ['id', 'name', 'desc', 'type', 'to_be_shown', 'start_time', 'end_time', 'duration',
-                  'total_questions', 'created_at', 'updated_at', 'activity', 'sequence_no',
-                  ]
+        fields = [
+            'id',
+            'name',
+            'desc',
+            'type',
+            'to_be_shown',
+            'start_time',
+            'end_time',
+            'duration',
+            'total_questions',
+            'created_at',
+            'updated_at',
+            'activity',
+            'sequence_no',
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
@@ -142,7 +168,14 @@ class UserCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCard
-        fields = ['id', 'card_id', 'user_id', 'completed_questions', 'status', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'card_id',
+            'user_id',
+            'completed_questions',
+            'status',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -151,23 +184,23 @@ class UserCardSerializer(serializers.ModelSerializer):
 
         try:
             user_card, created = UserCard.objects.update_or_create(
-                card_id=card_id,
-                user_id=user_id,
-                defaults={
-                    'completed_questions': validated_data.get('completed_questions', 0),
-                    'status': validated_data.get('status', Status.NOT_ATTEMPTED)
-                }
-            )
+                card_id=card_id, user_id=user_id, defaults={
+                    'completed_questions': validated_data.get(
+                        'completed_questions', 0), 'status': validated_data.get(
+                        'status', Status.NOT_ATTEMPTED)})
             return user_card
         except Exception as e:
             raise serializers.ValidationError(str(e))
 
     def update(self, instance, validated_data):
-        # Exclude card_id and user_id from validated_data to keep them immutable
-        validated_data.pop('card_id', None)     # TODO: Throw an error if not FKs aren't same
+        # Exclude card_id and user_id from validated_data to keep them
+        # immutable
+        # TODO: Throw an error if not FKs aren't same
+        validated_data.pop('card_id', None)
         validated_data.pop('user_id', None)
 
-        instance.completed_questions = validated_data.get('completed_questions', instance.completed_questions)
+        instance.completed_questions = validated_data.get(
+            'completed_questions', instance.completed_questions)
         instance.status = validated_data.get('status', instance.status)
 
         try:
@@ -193,7 +226,13 @@ class QuestionSerializer(serializers.ModelSerializer):
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option
-        fields = ['id', 'value', 'sequence_no', 'question', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'value',
+            'sequence_no',
+            'question',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def __str__(self):
@@ -203,11 +242,23 @@ class OptionSerializer(serializers.ModelSerializer):
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
-        fields = ['id', 'answer', 'user', 'question', 'option', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'answer',
+            'user',
+            'question',
+            'option',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def __str__(self):
         if self.answer:
-            return f"{self.id}. U = {self.user.id} Q = {self.question.id} A = {self.answer[:3]}.."
+            return f"{self.id}. U = {self.user.id} Q = {
+                self.question.id} A = {self.answer[:3]}.."
         else:
-            return f"{self.id}. U = {self.user.id} Q = {self.question.id} O = {self.option.id}"
+            return f"{
+                self.id}. U = {
+                self.user.id} Q = {
+                self.question.id} O = {
+                self.option.id}"
