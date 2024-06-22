@@ -200,8 +200,8 @@ class SignInAPIView(APIView):
 
         try:
             latest_user_batch = UserBatch.objects.filter(
-                user=user).latest('updated_at')
-            batch_id = latest_user_batch.id
+                user=user).order_by('updated_at').first()
+            batch_id = latest_user_batch.batch.id
             batch_name = latest_user_batch.batch.name
         except UserBatch.DoesNotExist:
             return JsonResponse({'error': 'UserBatch not found'}, status=404)
