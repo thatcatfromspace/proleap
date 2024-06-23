@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from .permissions import OrganizerOnlyAllPermission, UserOnlyAllPermission  
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -1549,7 +1550,7 @@ class UserCardQuestionProgress(APIView):
 
 
 class UserActivityProgressList(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [UserOnlyAllPermission]    
 
     @swagger_auto_schema(
         operation_description="Retrieve the user's activity progress for a batch.",
