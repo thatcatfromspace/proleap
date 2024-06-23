@@ -240,6 +240,11 @@ class OptionSerializer(serializers.ModelSerializer):
 
 
 class AnswerSerializer(serializers.ModelSerializer):
+
+    options = serializers.ListField(
+        child=serializers.IntegerField(), write_only=True, required=False
+    )
+
     class Meta:
         model = Answer
         fields = [
@@ -248,10 +253,33 @@ class AnswerSerializer(serializers.ModelSerializer):
             'user',
             'question',
             'option',
+            'options',
             'created_at',
             'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    def create(self, validated_data):
+        options = validated_data.pop('options', [])
+        option = validated_data.pop('option', "")
+        user = validated_data['user']
+        question = validated_data['question']
+        answer_text = validated_data.get('answer', None)
+
+        answer_instances = []
+        for option_id in options:
+            option = Option.objects.get(id=option_id)
+            answer_instance = Answer.objects.create(
+                user=user, question=question, option=option, answer=answer_text
+            )    # TODO: Check if the option belongs to the question
+            answer_instances.append(answer_instance)
+        
+        return answer_instances
+    
+    def to_representation(self, instance):
+        if isinstance(instance, list):
+            return [super(AnswerSerializer, self).to_representation(i) for i in instance]
+        return super(AnswerSerializer, self).to_representation(instance)
+    
     def __str__(self):
         if self.answer:
             return f"{self.id}. U = {self.user.id} Q = {

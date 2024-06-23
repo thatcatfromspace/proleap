@@ -1204,7 +1204,8 @@ class AnswerListCreateAPIView(APIView):
         try:
             serializer = AnswerSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save()
+                answer_instances = serializer.save()
+
 
                 # Check if all questions in the card are answered
                 # question = serializer.instance.question
@@ -1222,7 +1223,7 @@ class AnswerListCreateAPIView(APIView):
                 #     user_card.save(update_fields=['completed_questions'])
 
                 return Response(
-                    serializer.data,
+                    AnswerSerializer(answer_instances, many=True).data,
                     status=status.HTTP_201_CREATED)
             return Response(
                 serializer.errors,
