@@ -96,14 +96,13 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
         let answer = answers.find((element) => element.qid === currentCard.questions[i].id);
         console.log(answer); 
         if (currentCard.questions[i].answers.length === 0) {
-          if (currentCard.questions[i].type === "RADIO" || 
-            currentCard.questions[i].type === "CHECKBOXES"
+          if (currentCard.questions[i].type === "RADIO" 
           ) {
             let obj = {
               question: currentCard.questions[i].id,
               answer: "",
               user: userId,
-              option: answer.oid ? answer.oid : "",
+              options:answer.oid ? [answer.oid] : []
             };
             //       console.log("RADIO BUTTON");
             //       console.log(obj);
@@ -123,7 +122,6 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
               question: currentCard.questions[i].id,
               answer: answer.answer ? answer.answer : "",
               user: userId,
-              option: "",
             };
             axios
               .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
@@ -133,12 +131,27 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
               .catch((err) => {
                 console.log(err.message);
               });
-          } else {
+          }
+          else if(currentCard.questions[i].type === "CHECKBOXES"){
             let obj = {
               question: currentCard.questions[i].id,
-              answer: null,
+              answer: "",
               user: userId,
-              option: null,
+              options:answer.oid ? [answer.oid] : []
+            };
+            //       console.log("RADIO BUTTON");
+            //       console.log(obj);
+            //       // TODO: remove activity and card
+            axios
+              .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
+              .then((res) => {
+                console.log(res.data);
+              });
+          } 
+          else {
+            let obj = {
+              question: currentCard.questions[i].id,
+              user: userId,
             };
             console.log(obj);
             axios
@@ -452,7 +465,6 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                           disabled
                           id={`radio-${index}`}
                         ></input>
-
                         {val.options.map((value, index) => (
                           <label htmlFor={`radio-${index}`} key={index}>
                             {value.id === val.answers[0].option
@@ -500,7 +512,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                             return [...prev, answer];
                           })
                           const new_state = requiredFlag.filter(
-                            (obj) => obj.id != val.question.id,
+                            (obj) => obj.id != val.id,
                           );
                           setRequiredFlag(new_state);
                         }}
@@ -593,9 +605,11 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                                 };
                                 setAnswers(prev => {
                                   const index = prev.findIndex((element) => element.qid == qid);
+                                  const element = prev.find((element)=>element.qid==qid);
                                   if (index !== -1) {
                                     let updatedList = [...prev];
-                                    updatedList[index] = answer;
+                                    element[oid].push(value.id)
+                                    updatedList[index] = element;
                                     return updatedList;
                                   }
                                   return [...prev, answer];

@@ -56,7 +56,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
         <div className="mainarea relative z-1">
           <div className="nav flex w-full justify-between px-8">
             <div>
-              <span>Welcome Rahul!</span>
+              <span>Welcome {userName}!</span>
             </div>
           </div>
           <div className="w-full mt-12">
