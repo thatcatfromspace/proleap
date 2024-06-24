@@ -94,7 +94,10 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
     else {
       for (let i = 0; i < currentCard.questions.length; i++) {
         let answer = answers.find((element) => element.qid === currentCard.questions[i].id);
-        console.log(answer); 
+        if(answer==undefined){
+          ;
+        }
+        else{
         if (currentCard.questions[i].answers.length === 0) {
           if (currentCard.questions[i].type === "RADIO" 
           ) {
@@ -118,7 +121,9 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
             currentCard.questions[i].type === "PARAGRAPH" ||
             currentCard.questions[i].type === "SHORT_ANSWER" ||
             currentCard.questions[i].type === "DATE"||
-            currentCard.questions[i].type === "EMAIL"
+            currentCard.questions[i].type === "EMAIL"||
+            currentCard.questions[i].type === "NUMBER"
+
 
           ) {
             let obj = {
@@ -142,7 +147,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
               question: currentCard.questions[i].id,
               answer: "",
               user: userId,
-              options:answer.oid ? [answer.oid] : null,
+              options:answer.oid ? answer.oid : null,
               option:null
             };
             //       console.log("RADIO BUTTON");
@@ -168,6 +173,8 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           }
         }
       }
+
+      }
       if (isLastSlide === true) {
         setShowActivity(true);
         setShowCard(false);
@@ -175,7 +182,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
       else{
         setAnswers([]);
         const newId = isLastSlide ? currentCardId : cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1).id
-        setCurrentCardId(newId);x
+        setCurrentCardId(newId);
       }
       // setCurrentCard(cards.find((element) => element.id == newId))
       // console.log(cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1).id);
@@ -349,6 +356,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                 key={val.id}
               >
                 {val.type == "PARAGRAPH" ||
+                val.type == "NUMBER" ||
                   val.type == "SHORT_ANSWER" ? (
                   <div className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2   [transiton:border-bottom-radius_0.3s_ease-in-out] ">
                     <label className="mb-2" htmlFor={val.desc}>
@@ -374,6 +382,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                           qid: qid,
                           answer: e.target.value
                         };
+                        console.log(answer);
                         setAnswers(prev => {
                           const index = prev.findIndex((element) => element.qid == qid);
                           if (index !== -1) {
@@ -607,16 +616,19 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                                 let qid = c.questions[index].id;
                                 let answer = {
                                   qid: qid,
-                                  oid: value.id
+                                  oid: [value.id]
                                 };
                                 setAnswers(prev => {
                                   const index = prev.findIndex((element) => element.qid == qid);
                                   const element = prev.find((element)=>element.qid==qid);
                                   if (index !== -1) {
-                                    let updatedList = [...prev];
-                                    element[oid].push(value.id)
-                                    updatedList[index] = element;
-                                    return updatedList;
+                                    const id = element.oid.findIndex((element)=>element==value.id);
+                                    if(id==-1){
+                                      let updatedList = [...prev];
+                                      element.oid.push(value.id)
+                                      updatedList[index] = element;
+                                      return updatedList;
+                                    }
                                   }
                                   return [...prev, answer];
                                 })
