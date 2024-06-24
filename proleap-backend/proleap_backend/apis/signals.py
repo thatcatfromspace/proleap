@@ -17,20 +17,21 @@ def update_user_progress(sender, instance, created, **kwargs):
 
         # Fetch all questions in the card
         questions_in_card = Question.objects.filter(card=card)
+        tot_rqd_questions = questions_in_card.filter(is_required=True)
         question_ids = questions_in_card.values_list('id', flat=True)
 
         # Fetch all unique answers for the user and questions in the card
-        # user_answers = Answer.objects.filter(
-        #     user=user, question__in=question_ids).values('question').distinct()
-        # completed_questions_count = user_answers.count()
+        user_answers = Answer.objects.filter(
+            user=user, question__in=question_ids).values('question').distinct()
+        completed_questions_count = user_answers.count()
 
         # Fetch all unique answers for the user and questions in the card where question.is_required is True
-        user_answers = Answer.objects.filter(
-            user=user, 
-            question__in=question_ids, 
-            question__is_required=True
-        ).values('question').distinct()
-        completed_questions_count = user_answers.count()
+        # user_answers = Answer.objects.filter(
+        #     user=user, 
+        #     question__in=question_ids, 
+        #     question__is_required=True
+        # ).values('question').distinct()
+        # completed_questions_count = user_answers.count()
 
         # Update the UserCard instance
         user_card, created = UserCard.objects.get_or_create(
@@ -40,7 +41,7 @@ def update_user_progress(sender, instance, created, **kwargs):
         # Update the status in UserCard
         if completed_questions_count == 0:
             user_card.status = Status.NOT_ATTEMPTED
-        elif completed_questions_count < card.total_questions:
+        elif completed_questions_count < tot_rqd_questions:
             user_card.status = Status.IN_PROGRESS
         else:
             user_card.status = Status.COMPLETED
