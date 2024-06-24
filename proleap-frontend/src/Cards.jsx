@@ -336,7 +336,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           <div className="relative h-fit flex flex-col">
             <div className="relative left-[70%] w-[30%] h-[4vh] bg-[#408F64] rounded-bl-lg flex justify-start">
               <span className=" text-xl px-3">
-                Section {currentCardId} of {total_cards}
+                Section {currentCard.sequence_no} of {total_cards}
               </span>
             </div>
             <span className="uppercase truncate px-4">
