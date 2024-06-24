@@ -102,7 +102,8 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
               question: currentCard.questions[i].id,
               answer: "",
               user: userId,
-              options:answer.oid ? [answer.oid] : []
+              options:answer.oid ? [answer.oid] : [],
+              option:null
             };
             //       console.log("RADIO BUTTON");
             //       console.log(obj);
@@ -116,12 +117,16 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           else if (
             currentCard.questions[i].type === "PARAGRAPH" ||
             currentCard.questions[i].type === "SHORT_ANSWER" ||
-            currentCard.questions[i].type === "DATE"
+            currentCard.questions[i].type === "DATE"||
+            currentCard.questions[i].type === "EMAIL"
+
           ) {
             let obj = {
               question: currentCard.questions[i].id,
               answer: answer.answer ? answer.answer : "",
               user: userId,
+              option:null,
+              options:[]
             };
             axios
               .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
@@ -137,7 +142,8 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
               question: currentCard.questions[i].id,
               answer: "",
               user: userId,
-              options:answer.oid ? [answer.oid] : []
+              options:answer.oid ? [answer.oid] : null,
+              option:null
             };
             //       console.log("RADIO BUTTON");
             //       console.log(obj);
@@ -169,7 +175,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
       else{
         setAnswers([]);
         const newId = isLastSlide ? currentCardId : cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1).id
-        setCurrentCardId(newId);
+        setCurrentCardId(newId);x
       }
       // setCurrentCard(cards.find((element) => element.id == newId))
       // console.log(cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1).id);
@@ -340,7 +346,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
             cards.find((element) => element.id == currentCardId).questions.map((val, index) => (
               <li
                 className="none  px-4 h-full w-[100%] text-lg border-t-2 border-primary"
-                key={index}
+                key={val.id}
               >
                 {val.type == "PARAGRAPH" ||
                   val.type == "SHORT_ANSWER" ? (
