@@ -1206,21 +1206,8 @@ class AnswerListCreateAPIView(APIView):
             if serializer.is_valid():
                 answer_instances = serializer.save()
 
-
-                # Check if all questions in the card are answered
-                # question = serializer.instance.question
-                # card = question.card
-                # questions_in_card = card.questions.all()
-
-                # user_answers = Answer.objects.filter(
-                #     user=serializer.instance.user,
-                #     question__in=questions_in_card
-                # ).distinct('question').count()
-
-                # if user_answers == questions_in_card.count():
-                #     user_card = UserCard.objects.get(user=serializer.instance.user, card=card)
-                #     user_card.completed_questions = user_answers
-                #     user_card.save(update_fields=['completed_questions'])
+                if not isinstance(answer_instances, list):
+                    answer_instances = [answer_instances]
 
                 return Response(
                     AnswerSerializer(answer_instances, many=True).data,
