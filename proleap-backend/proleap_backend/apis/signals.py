@@ -20,8 +20,16 @@ def update_user_progress(sender, instance, created, **kwargs):
         question_ids = questions_in_card.values_list('id', flat=True)
 
         # Fetch all unique answers for the user and questions in the card
+        # user_answers = Answer.objects.filter(
+        #     user=user, question__in=question_ids).values('question').distinct()
+        # completed_questions_count = user_answers.count()
+
+        # Fetch all unique answers for the user and questions in the card where question.is_required is True
         user_answers = Answer.objects.filter(
-            user=user, question__in=question_ids).values('question').distinct()
+            user=user, 
+            question__in=question_ids, 
+            question__is_required=True
+        ).values('question').distinct()
         completed_questions_count = user_answers.count()
 
         # Update the UserCard instance
