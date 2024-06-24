@@ -336,7 +336,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           <div className="relative h-fit flex flex-col">
             <div className="relative left-[70%] w-[30%] h-[4vh] bg-[#408F64] rounded-bl-lg flex justify-start">
               <span className=" text-xl px-3">
-                Section {currentCard.sequence_no} of {total_cards}
+                Section {currentCard && currentCard.sequence_no} of {total_cards}
               </span>
             </div>
             <span className="uppercase truncate px-4">
@@ -416,6 +416,9 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                       <span className="text-red-600">
                         {val.is_required ? " *" : " "}
                       </span>
+                      <br />
+                      {val.answers.length == 0 ?
+                      <span className="text-sm">Select any one option</span>:null}
                     </label>
                     {val.answers.length == 0 ? (
                       // activity.status==="NOT_ATTEMPTED"?
@@ -601,6 +604,9 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                         <span className="text-red-600">
                           {val.is_required ? " *" : " "}
                         </span>
+                        <br />
+                        {val.answers.length == 0 ?
+                      <span className="text-sm">Select atleast one option</span>:null}
                       </label>
                       {val.answers.length == 0 ? (
                         // activity.status==="NOT_ATTEMPTED"?

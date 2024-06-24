@@ -17,12 +17,19 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
     e.preventDefault();
     setActiveElement(itemId);
   };
-
+  useEffect(() => {
+    axios.get("https://type.fit/api/quotes").then((res)=>{
+      console.log(res.data);
+      const id = Math.floor(Math.random() * res.data.length);
+      setTipOfTheDay(res.data[id]);
+    })
+  }, []);
   const [currentCardId, setCurrentCardId] = useState();
   const [showActivity, setShowActivity] = useState(true);
   const [showCard, setShowCard] = useState(false);
   const [activity, setActivity] = useState(null);
   const [currentActivity, setCurrentActivity] = useState();
+  const [tipOfTheDay,setTipOfTheDay] = useState();
   useEffect(() => {
     if (batchID != null) {
       console.log(batchId);
@@ -62,7 +69,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
           <div className="w-full mt-12">
             {showActivity && (
               <ul className="flex flex-wrap justify-start gap-[2%] w-full  ">
-                {activity!= null
+                {activity != null
                   ? activity.activities.map((val, index) => (
                     <button
                       onClick={(e) => {
@@ -72,10 +79,15 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                         setShowActivity(false);
                         setShowCard(true);
                       }}
-                      className="flex w-[49%] my-2 flex-col flex-wrap h-[25vh] shadow-2xl   px-8 py-4 border-b-[12px] rounded-xl border-logingreen "
+                      className={`flex w-[49%] my-2 flex-col flex-wrap h-[25vh] shadow-2xl   px-8 py-4 border-b-[12px] rounded-xl 
+                        ${val.user_activity_progress == null ?
+                          "border-[#000]" :
+                          val.user_activity_progress.status === "IN_PROGRESS" ?
+                            "border-[#FFC943]" :
+                            "border-logingreen"} `}
                       key={index}
                     >
-                      <li  className="">
+                      <li className="">
                         <span className="text-[30px] justify-start flex">
                           {val.name}
                         </span>
@@ -205,10 +217,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                     </svg>
                   </div>
                   <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Dolor dolore voluptates, a nulla tempora debitis explicabo
-                    perferendis? Consectetur aut voluptatibus, error omnis
-                    placeat atque dolore amet architecto dolor voluptates alias.
+                  {tipOfTheDay!=null?tipOfTheDay.text:""}
                   </span>
                 </li>
 
