@@ -47,7 +47,7 @@ Follow these steps to get the Django project up and running locally using Docker
    docker exec -it proleap-backend-web python manage.py flush
    docker exec -it proleap-backend-web python manage.py makemigrations
    docker exec -it proleap-backend-web python manage.py migrate
-   docker exec -it proleap-backend-web python manage.py loaddata until_options.json
+   docker exec -it proleap-backend-web python manage.py loaddata fixtures/mock_data_02.json
    ```
 
 5. **Create a superuser (if needed):**
