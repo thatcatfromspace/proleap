@@ -341,7 +341,12 @@ class Answer(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
-        unique_together = ["user", "question", "option"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'question', 'option', 'answer'],
+                name='unique_user_question_option_answer'
+            )
+        ]
 
     def __str__(self) -> str:
         if self.answer:
