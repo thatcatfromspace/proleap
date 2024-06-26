@@ -1,14 +1,13 @@
 import logo from "../assets/PL_Logo_RGB.png";
 import {
-  BookmarkBorder,
-  CalendarToday,
-  CollectionsBookmark,
-  HomeSharp,
-  Message,
-  Notifications,
+  Bell,
+  Book,
+  Bookmark,
+  Calendar,
+  House,
+  Mail,
   Settings,
-} from "@material-ui/icons";
-
+} from "lucide-react";
 /**
  * Pass `messages` if there are any messages in the inbox.
  * Pass `notifs` if there are any unread notifications.
@@ -29,14 +28,11 @@ export function Navbar({ notifs, messages }) {
         <div className="mt-16">
           <div className="flex-col font-poppins">
             <div className="flex justify-start items-center gap-x-3 cursor-pointer">
-              <HomeSharp style={{ color: "#F4F6FC" }} height="40" />
+              <House style={{ color: "#F4F6FC" }} height="40" />
               <label className="font-normal text-gray-50"> Home </label>
             </div>
             <div className="flex justify-start items-center mt-8 gap-x-3 cursor-pointer relative">
-              <Message
-                style={{ color: "#F4F6FC", opacity: "30%" }}
-                height="40"
-              />
+              <Mail style={{ color: "#F4F6FC", opacity: "30%" }} height="40" />
               <label className="font-normal text-gray-50"> Inbox </label>
               {messages ? (
                 <div className="h-[5px] w-[5px] rounded-full bg-yellow-300 absolute top-0 right-24 text-transparent">
@@ -45,33 +41,27 @@ export function Navbar({ notifs, messages }) {
               ) : null}
             </div>
             <div className="flex justify-start items-center mt-8 gap-x-3 cursor-pointer">
-              <BookmarkBorder
+              <Bookmark
                 style={{ color: "#F4F6FC", opacity: "30%" }}
                 height="40"
               />
               <label className="font-normal text-gray-50"> Saved </label>
             </div>
             <div className="flex justify-start items-center mt-8 gap-x-3 cursor-pointer">
-              <CalendarToday
+              <Calendar
                 style={{ color: "#F4F6FC", opacity: "30%" }}
                 height="40"
               />
               <label className="font-normal text-gray-50"> Calendar </label>
             </div>
             <div className="flex justify-start items-center mt-8 gap-x-3 cursor-pointer">
-              <CollectionsBookmark
-                style={{ color: "#F4F6FC", opacity: "30%" }}
-                height="40"
-              />
+              <Book style={{ color: "#F4F6FC", opacity: "30%" }} height="40" />
               <label className="font-normal text-gray-50">
                 {"Health Card"}
               </label>
             </div>
             <div className="flex justify-start items-center mt-8 gap-x-3 cursor-pointer">
-              <Notifications
-                style={{ color: "#F4F6FC", opacity: "30%" }}
-                height="40"
-              />
+              <Bell style={{ color: "#F4F6FC", opacity: "30%" }} height="40" />
               <label className="font-normal text-gray-50">Notifications</label>
             </div>
             <div className="flex justify-start items-center mt-8 gap-x-3 mb-32">

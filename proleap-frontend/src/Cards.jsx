@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { input } from "@material-tailwind/react";
-import { elements } from "chart.js";
+
 export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
   const navigate = useNavigate();
   const activity = Activity;
   const [currentCardId, setCurrentCardId] = useState();
-  const [currentCard, setCurrentCard] = useState()
+  const [currentCard, setCurrentCard] = useState();
   const total_cards = activity.total_cards;
   const userId = uid;
   const [cards, setCards] = useState([]);
@@ -26,13 +25,15 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
     if (activity != null && userId != null) {
       axios
         .get(
-          `http://${import.meta.env.VITE_API_URL
+          `http://${
+            import.meta.env.VITE_API_URL
           }/apis/user/${uid}/activity/${activity.id}/`,
-        ).then((res) => {
+        )
+        .then((res) => {
           setCards(res.data.cards);
           setCurrentCardId(res.data.recent_card_id);
           console.log(res.data);
-        })
+        });
     }
   }, []);
 
@@ -61,11 +62,12 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
     }
   }, [currentCardId]);
 
-
   const previousCard = (e) => {
     e.preventDefault();
     if (currentCard.sequence_no != 1) {
-      let card = cards.find((ele) => ele.sequence_no == currentCard.sequence_no - 1).id;
+      let card = cards.find(
+        (ele) => ele.sequence_no == currentCard.sequence_no - 1,
+      ).id;
       setCurrentCardId(card);
     }
     // const isFirstSlide = currentIndex === 0;
@@ -77,7 +79,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
     e.preventDefault();
     const isLastSlide = currentCard.sequence_no === total_cards;
     const required = requiredFlag.length === 0;
-    console.log(required)
+    console.log(required);
     if (!required) {
       let temp = errorMessage;
       for (let i = 0; i < requiredFlag.length; i++) {
@@ -90,104 +92,110 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
       }
       console.log(temp);
       setErrorMessage(temp);
-    }
-    else {
+    } else {
       for (let i = 0; i < currentCard.questions.length; i++) {
-        let answer = answers.find((element) => element.qid === currentCard.questions[i].id);
-        if(answer==undefined){
-          ;
+        let answer = answers.find(
+          (element) => element.qid === currentCard.questions[i].id,
+        );
+        if (answer == undefined) {
+        } else {
+          if (currentCard.questions[i].answers.length === 0) {
+            if (currentCard.questions[i].type === "RADIO") {
+              let obj = {
+                question: currentCard.questions[i].id,
+                answer: "",
+                user: userId,
+                options: answer.oid ? [answer.oid] : [],
+                option: null,
+              };
+              //       console.log("RADIO BUTTON");
+              //       console.log(obj);
+              //       // TODO: remove activity and card
+              axios
+                .post(
+                  `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
+                  obj,
+                )
+                .then((res) => {
+                  console.log(res.data);
+                });
+            } else if (
+              currentCard.questions[i].type === "PARAGRAPH" ||
+              currentCard.questions[i].type === "SHORT_ANSWER" ||
+              currentCard.questions[i].type === "DATE" ||
+              currentCard.questions[i].type === "EMAIL" ||
+              currentCard.questions[i].type === "NUMBER"
+            ) {
+              let obj = {
+                question: currentCard.questions[i].id,
+                answer: answer.answer ? answer.answer : "",
+                user: userId,
+                option: null,
+                options: [],
+              };
+              axios
+                .post(
+                  `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
+                  obj,
+                )
+                .then((res) => {
+                  console.log(res.data);
+                })
+                .catch((err) => {
+                  console.log(err.message);
+                });
+            } else if (currentCard.questions[i].type === "CHECKBOXES") {
+              let obj = {
+                question: currentCard.questions[i].id,
+                answer: "",
+                user: userId,
+                options: answer.oid ? answer.oid : null,
+                option: null,
+              };
+              //       console.log("RADIO BUTTON");
+              //       console.log(obj);
+              //       // TODO: remove activity and card
+              axios
+                .post(
+                  `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
+                  obj,
+                )
+                .then((res) => {
+                  console.log(res.data);
+                });
+            } else {
+              let obj = {
+                question: currentCard.questions[i].id,
+                user: userId,
+              };
+              console.log(obj);
+              axios
+                .post(
+                  `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
+                  obj,
+                )
+                .then((res) => {
+                  // console.log(res.data);
+                });
+            }
+          }
         }
-        else{
-        if (currentCard.questions[i].answers.length === 0) {
-          if (currentCard.questions[i].type === "RADIO" 
-          ) {
-            let obj = {
-              question: currentCard.questions[i].id,
-              answer: "",
-              user: userId,
-              options:answer.oid ? [answer.oid] : [],
-              option:null
-            };
-            //       console.log("RADIO BUTTON");
-            //       console.log(obj);
-            //       // TODO: remove activity and card
-            axios
-              .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
-              .then((res) => {
-                console.log(res.data);
-              });
-          }
-          else if (
-            currentCard.questions[i].type === "PARAGRAPH" ||
-            currentCard.questions[i].type === "SHORT_ANSWER" ||
-            currentCard.questions[i].type === "DATE"||
-            currentCard.questions[i].type === "EMAIL"||
-            currentCard.questions[i].type === "NUMBER"
-
-
-          ) {
-            let obj = {
-              question: currentCard.questions[i].id,
-              answer: answer.answer ? answer.answer : "",
-              user: userId,
-              option:null,
-              options:[]
-            };
-            axios
-              .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
-              .then((res) => {
-                console.log(res.data);
-              })
-              .catch((err) => {
-                console.log(err.message);
-              });
-          }
-          else if(currentCard.questions[i].type === "CHECKBOXES"){
-            let obj = {
-              question: currentCard.questions[i].id,
-              answer: "",
-              user: userId,
-              options:answer.oid ? answer.oid : null,
-              option:null
-            };
-            //       console.log("RADIO BUTTON");
-            //       console.log(obj);
-            //       // TODO: remove activity and card
-            axios
-              .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
-              .then((res) => {
-                console.log(res.data);
-              });
-          } 
-          else {
-            let obj = {
-              question: currentCard.questions[i].id,
-              user: userId,
-            };
-            console.log(obj);
-            axios
-              .post(`http://${import.meta.env.VITE_API_URL}/apis/answers/`, obj)
-              .then((res) => {
-                // console.log(res.data);
-              });
-          }
-        }
-      }
-
       }
       if (isLastSlide === true) {
         setShowActivity(true);
         setShowCard(false);
-      }
-      else{
+      } else {
         setAnswers([]);
-        const newId = isLastSlide ? currentCardId : cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1).id
+        const newId = isLastSlide
+          ? currentCardId
+          : cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1)
+              .id;
         setCurrentCardId(newId);
       }
       // setCurrentCard(cards.find((element) => element.id == newId))
       // console.log(cards.find((ele) => ele.sequence_no == currentCard.sequence_no + 1).id);
-    };
-  }
+    }
+  };
   // const getCardDetails = (aid, cid) => {
   //   setCard(null);
   //   setRequiredFlag([]);
@@ -336,172 +344,182 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           <div className="relative h-fit flex flex-col">
             <div className="relative left-[70%] w-[30%] h-[4vh] bg-[#408F64] rounded-bl-lg flex justify-start">
               <span className=" text-xl px-3">
-                Section {currentCard && currentCard.sequence_no} of {total_cards}
+                Section {currentCard && currentCard.sequence_no} of{" "}
+                {total_cards}
               </span>
             </div>
             <span className="uppercase truncate px-4">
               {activity != null ? activity.name : null}
             </span>
             <div className="text-lg text-gray-600 px-4 ">
-              <span className="">
-                {activity.desc}
-              </span>
+              <span className="">{activity.desc}</span>
             </div>
           </div>
-          {
-            currentCard != null &&
-            cards.find((element) => element.id == currentCardId).questions.map((val, index) => (
-              <li
-                className="none  px-4 h-full w-[100%] text-lg border-t-2 border-primary"
-                key={val.id}
-              >
-                {val.type == "PARAGRAPH" ||
-                val.type == "NUMBER" ||
+          {currentCard != null &&
+            cards
+              .find((element) => element.id == currentCardId)
+              .questions.map((val, index) => (
+                <li
+                  className="none  px-4 h-full w-[100%] text-lg border-t-2 border-primary"
+                  key={val.id}
+                >
+                  {val.type == "PARAGRAPH" ||
+                  val.type == "NUMBER" ||
                   val.type == "SHORT_ANSWER" ? (
-                  <div className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2   [transiton:border-bottom-radius_0.3s_ease-in-out] ">
-                    <label className="mb-2" htmlFor={val.desc}>
-                      {" "}
-                      {val.text}{" "}
-                      <span className="text-red-600">
-                        {val.is_required ? " *" : " "}
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      className={`box-border  break-words outline-none ${val.type === "SHORT_ANSWER" ? "w-full" : "w-1/2"
+                    <div className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2   [transiton:border-bottom-radius_0.3s_ease-in-out] ">
+                      <label className="mb-2" htmlFor={val.desc}>
+                        {" "}
+                        {val.text}{" "}
+                        <span className="text-red-600">
+                          {val.is_required ? " *" : " "}
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        className={`box-border  break-words outline-none ${
+                          val.type === "SHORT_ANSWER" ? "w-full" : "w-1/2"
                         } py-2 text-sm bg-transparent rounded-sm border-b-2 border-dotted border-b-gray-600 focus:border-b-[2.5px] focus:border-b-blue-500 ease-in overflow-scroll`}
-                      // onBlur={() => monitorEmptyText(required)}
-                      defaultValue={
-                        val.answers.length != 0 ? val.answers[0].answer : ""
-                      }
-                      disabled={val.answers.length != 0 ? true : false}
-                      onChange={(e) => {
-                        let c = currentCard;
-                        let qid = c.questions[index].id;
-                        let answer = {
-                          qid: qid,
-                          answer: e.target.value
-                        };
-                        console.log(answer);
-                        setAnswers(prev => {
-                          const index = prev.findIndex((element) => element.qid == qid);
-                          if (index !== -1) {
-                            let updatedList = [...prev];
-                            updatedList[index] = answer;
-                            return updatedList;
-                          }
-                          return [...prev, answer];
-                        })
-                        const new_state = requiredFlag.filter(
-                          (obj) => obj.id != val.id,
-                        );
-                        setRequiredFlag(new_state);
-                      }}
-                    ></input>
-                    {tempFlag && errorMessage[index].message ? (
-                      <span className="text-secondary">
-                        {errorMessage[index].message}
-                      </span>
-                    ) : (
-                      <span></span>
-                    )}
-                  </div>
-                ) : val.type === "RADIO" ?
-                  <div
-                    className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2  rounded-lg  [transiton:border-bottom-radius_0.3s_ease-in-out] "
-                    id={`radio${index}`}>
-                    <label htmlFor={val.desc}>
-                      {" "}
-                      {val.text}{" "}
-                      <span className="text-red-600">
-                        {val.is_required ? " *" : " "}
-                      </span>
-                      <br />
-                      {val.answers.length == 0 ?
-                      <span className="text-sm">Select any one option</span>:null}
-                    </label>
-                    {val.answers.length == 0 ? (
-                      // activity.status==="NOT_ATTEMPTED"?
-                      val.options.map((value, ind) => (
-                        <div className="" key={ind}>
+                        // onBlur={() => monitorEmptyText(required)}
+                        defaultValue={
+                          val.answers.length != 0 ? val.answers[0].answer : ""
+                        }
+                        disabled={val.answers.length != 0 ? true : false}
+                        onChange={(e) => {
+                          let c = currentCard;
+                          let qid = c.questions[index].id;
+                          let answer = {
+                            qid: qid,
+                            answer: e.target.value,
+                          };
+                          console.log(answer);
+                          setAnswers((prev) => {
+                            const index = prev.findIndex(
+                              (element) => element.qid == qid,
+                            );
+                            if (index !== -1) {
+                              let updatedList = [...prev];
+                              updatedList[index] = answer;
+                              return updatedList;
+                            }
+                            return [...prev, answer];
+                          });
+                          const new_state = requiredFlag.filter(
+                            (obj) => obj.id != val.id,
+                          );
+                          setRequiredFlag(new_state);
+                        }}
+                      ></input>
+                      {tempFlag && errorMessage[index].message ? (
+                        <span className="text-secondary">
+                          {errorMessage[index].message}
+                        </span>
+                      ) : (
+                        <span></span>
+                      )}
+                    </div>
+                  ) : val.type === "RADIO" ? (
+                    <div
+                      className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2  rounded-lg  [transiton:border-bottom-radius_0.3s_ease-in-out] "
+                      id={`radio${index}`}
+                    >
+                      <label htmlFor={val.desc}>
+                        {" "}
+                        {val.text}{" "}
+                        <span className="text-red-600">
+                          {val.is_required ? " *" : " "}
+                        </span>
+                        <br />
+                        {val.answers.length == 0 ? (
+                          <span className="text-sm">Select any one option</span>
+                        ) : null}
+                      </label>
+                      {val.answers.length == 0 ? (
+                        // activity.status==="NOT_ATTEMPTED"?
+                        val.options.map((value, ind) => (
+                          <div className="" key={ind}>
+                            <input
+                              className="before:content[''] peer relative w-3 h-3 mr-2 cursor-pointer appearance-none rounded-full border border-blue-200 border-5 hover:bg-gray1/70 focus:bg-tertiary checked:bg-tertiary checked:border-0 active:bg-black transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4  before:transition-opacity  hover:before:opacity-5"
+                              type="radio"
+                              name={val.desc}
+                              // value={value}
+                              // onChange={(e) =>
+                              //   handleRenderRadioButtonCLick(val, value)
+                              // }
+                              // checked
+                              checked={
+                                cards.find(
+                                  (element) => element.id == currentCardId,
+                                ).questions[index].answers.length != 0
+                                  ? value.id ===
+                                    cards.find(
+                                      (element) => element.id == currentCardId,
+                                    ).questions[index].answers[0].id
+                                    ? true
+                                    : false
+                                  : false
+                              }
+                              // disabled={val.answer.length != 0 ? true : false}
+                              onChange={(e) => {
+                                e.preventDefault();
+                                // val.question.answer = value;
+                                let c = currentCard;
+                                let qid = c.questions[index].id;
+                                let answer = {
+                                  qid: qid,
+                                  oid: value.id,
+                                };
+                                setAnswers((prev) => {
+                                  const index = prev.findIndex(
+                                    (element) => element.qid == qid,
+                                  );
+                                  if (index !== -1) {
+                                    let updatedList = [...prev];
+                                    updatedList[index] = answer;
+                                    return updatedList;
+                                  }
+                                  return [...prev, answer];
+                                });
+                                const new_state = requiredFlag.filter(
+                                  (obj) => obj.id != val.id,
+                                );
+                                setRequiredFlag(new_state);
+                              }}
+                              id={`radio-${ind}`}
+                            ></input>
+                            <label htmlFor={`radio-${ind}`}>
+                              {" "}
+                              {value.value}{" "}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="">
                           <input
                             className="before:content[''] peer relative w-3 h-3 mr-2 cursor-pointer appearance-none rounded-full border border-blue-200 border-5 hover:bg-gray1/70 focus:bg-tertiary checked:bg-tertiary checked:border-0 active:bg-black transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4  before:transition-opacity  hover:before:opacity-5"
                             type="radio"
                             name={val.desc}
-                            // value={value}
-                            // onChange={(e) =>
-                            //   handleRenderRadioButtonCLick(val, value)
-                            // }
-                            // checked
-                            checked={
-                              cards.find((element) => element.id == currentCardId).questions[index].answers.length != 0
-                                ? value.id ===
-                                  cards.find((element) => element.id == currentCardId).questions[index].answers[0].id
-                                  ? true
-                                  : false
-                                : false
-                            }
-                            // disabled={val.answer.length != 0 ? true : false}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              // val.question.answer = value;
-                              let c = currentCard;
-                              let qid = c.questions[index].id;
-                              let answer = {
-                                qid: qid,
-                                oid: value.id
-                              };
-                              setAnswers(prev => {
-                                const index = prev.findIndex((element) => element.qid == qid);
-                                if (index !== -1) {
-                                  let updatedList = [...prev];
-                                  updatedList[index] = answer;
-                                  return updatedList;
-                                }
-                                return [...prev, answer];
-                              })
-                              const new_state = requiredFlag.filter(
-                                (obj) => obj.id != val.id,
-                              );
-                              setRequiredFlag(new_state);
-                            }}
-                            id={`radio-${ind}`}
+                            checked
+                            disabled
+                            id={`radio-${index}`}
                           ></input>
-                          <label htmlFor={`radio-${ind}`}>
-                            {" "}
-                            {value.value}{" "}
-                          </label>
+                          {val.options.map((value, index) => (
+                            <label htmlFor={`radio-${index}`} key={index}>
+                              {value.id === val.answers[0].option
+                                ? value.value
+                                : null}
+                            </label>
+                          ))}
                         </div>
-                      ))
-                    ) : (
-                      <div className="">
-                        <input
-                          className="before:content[''] peer relative w-3 h-3 mr-2 cursor-pointer appearance-none rounded-full border border-blue-200 border-5 hover:bg-gray1/70 focus:bg-tertiary checked:bg-tertiary checked:border-0 active:bg-black transition-all before:absolute before:top-2/4 before:left-2/4 before:block before:h-12 before:w-12 before:-translate-y-2/4 before:-translate-x-2/4  before:transition-opacity  hover:before:opacity-5"
-                          type="radio"
-                          name={val.desc}
-                          checked
-                          disabled
-                          id={`radio-${index}`}
-                        ></input>
-                        {val.options.map((value, index) => (
-                          <label htmlFor={`radio-${index}`} key={index}>
-                            {value.id === val.answers[0].option
-                              ? value.value
-                              : null}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    {tempFlag && errorMessage[index].message ? (
-                      <span className="text-secondary">
-                        {errorMessage[index].message}
-                      </span>
-                    ) : (
-                      <span> </span>
-                    )}
-
-                  </div> :
-                  val.type === "EMAIL" ?
+                      )}
+                      {tempFlag && errorMessage[index].message ? (
+                        <span className="text-secondary">
+                          {errorMessage[index].message}
+                        </span>
+                      ) : (
+                        <span> </span>
+                      )}
+                    </div>
+                  ) : val.type === "EMAIL" ? (
                     <div className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2   [transiton:border-bottom-radius_0.3s_ease-in-out] ">
                       <label className="mb-2" htmlFor={val.desc}>
                         {" "}
@@ -518,17 +536,19 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                           let qid = c.questions[index].id;
                           let answer = {
                             qid: qid,
-                            answer: e.target.value
+                            answer: e.target.value,
                           };
-                          setAnswers(prev => {
-                            const index = prev.findIndex((element) => element.qid == qid);
+                          setAnswers((prev) => {
+                            const index = prev.findIndex(
+                              (element) => element.qid == qid,
+                            );
                             if (index !== -1) {
                               let updatedList = [...prev];
                               updatedList[index] = answer;
                               return updatedList;
                             }
                             return [...prev, answer];
-                          })
+                          });
                           const new_state = requiredFlag.filter(
                             (obj) => obj.id != val.id,
                           );
@@ -538,7 +558,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                           val.answers.length != 0 ? val.answers[0].answer : ""
                         }
                         disabled={val.answers.length != 0 ? true : false}
-                      // required
+                        // required
                       ></input>
                       {tempFlag && errorMessage[index].message ? (
                         <span className="text-secondary">
@@ -547,57 +567,60 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                       ) : (
                         <span></span>
                       )}
-                    </div> :
-                    val.type === "DATE" ?
-                      <div className="w-full flex flex-col flex-grow flex-shrink-0 bg-transparent basis-full mb-2 p-2 rounded-lg [transiton:border-bottom-radius_0.3s_ease-in-out] ">
-                        <label className="mb-2" htmlFor={val.desc}>
-                          {" "}
-                          {val.text}{" "}
-                          <span className="text-red-600">
-                            {val.is_required ? " *" : " "}
-                          </span>
-                        </label>
-                        <input
-                          type="date"
-                          className={`box-border break-words outline-none py-2 text-sm bg-transparent rounded-sm  `}
-                          onChange={(e) => {
-                            let c = currentCard;
-                            let qid = c.questions[index].id;
-                            let answer = {
-                              qid: qid,
-                              answer: e.target.value
-                            };
-                            setAnswers(prev => {
-                              const index = prev.findIndex((element) => element.qid == qid);
-                              if (index !== -1) {
-                                let updatedList = [...prev];
-                                updatedList[index] = answer;
-                                return updatedList;
-                              }
-                              return [...prev, answer];
-                            })
-                            const new_state = requiredFlag.filter(
-                              (obj) => obj.id != val.id,
+                    </div>
+                  ) : val.type === "DATE" ? (
+                    <div className="w-full flex flex-col flex-grow flex-shrink-0 bg-transparent basis-full mb-2 p-2 rounded-lg [transiton:border-bottom-radius_0.3s_ease-in-out] ">
+                      <label className="mb-2" htmlFor={val.desc}>
+                        {" "}
+                        {val.text}{" "}
+                        <span className="text-red-600">
+                          {val.is_required ? " *" : " "}
+                        </span>
+                      </label>
+                      <input
+                        type="date"
+                        className={`box-border break-words outline-none py-2 text-sm bg-transparent rounded-sm  `}
+                        onChange={(e) => {
+                          let c = currentCard;
+                          let qid = c.questions[index].id;
+                          let answer = {
+                            qid: qid,
+                            answer: e.target.value,
+                          };
+                          setAnswers((prev) => {
+                            const index = prev.findIndex(
+                              (element) => element.qid == qid,
                             );
-                            setRequiredFlag(new_state);
-                          }}
-                          defaultValue={
-                            val.answers.length != 0 ? val.answers[0].answer : ""
-                          }
-                          disabled={val.answers.length != 0 ? true : false}
-                        ></input>
-                        {tempFlag && errorMessage[index].message ? (
-                          <span className="text-secondary">
-                            {errorMessage[index].message}
-                          </span>
-                        ) : (
-                          <span></span>
-                        )}
-                      </div>
-                      : val.type === "CHECKBOXES" ?
-                      <div
+                            if (index !== -1) {
+                              let updatedList = [...prev];
+                              updatedList[index] = answer;
+                              return updatedList;
+                            }
+                            return [...prev, answer];
+                          });
+                          const new_state = requiredFlag.filter(
+                            (obj) => obj.id != val.id,
+                          );
+                          setRequiredFlag(new_state);
+                        }}
+                        defaultValue={
+                          val.answers.length != 0 ? val.answers[0].answer : ""
+                        }
+                        disabled={val.answers.length != 0 ? true : false}
+                      ></input>
+                      {tempFlag && errorMessage[index].message ? (
+                        <span className="text-secondary">
+                          {errorMessage[index].message}
+                        </span>
+                      ) : (
+                        <span></span>
+                      )}
+                    </div>
+                  ) : val.type === "CHECKBOXES" ? (
+                    <div
                       className="w-full flex flex-col flex-grow flex-shrink-0 basis-full mb-2 p-2  rounded-lg  [transiton:border-bottom-radius_0.3s_ease-in-out] "
-                      id={`radio${index}`}>
+                      id={`radio${index}`}
+                    >
                       <label htmlFor={val.desc}>
                         {" "}
                         {val.text}{" "}
@@ -605,8 +628,11 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                           {val.is_required ? " *" : " "}
                         </span>
                         <br />
-                        {val.answers.length == 0 ?
-                      <span className="text-sm">Select atleast one option</span>:null}
+                        {val.answers.length == 0 ? (
+                          <span className="text-sm">
+                            Select atleast one option
+                          </span>
+                        ) : null}
                       </label>
                       {val.answers.length == 0 ? (
                         // activity.status==="NOT_ATTEMPTED"?
@@ -622,22 +648,28 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                                 let qid = c.questions[index].id;
                                 let answer = {
                                   qid: qid,
-                                  oid: [value.id]
+                                  oid: [value.id],
                                 };
-                                setAnswers(prev => {
-                                  const index = prev.findIndex((element) => element.qid == qid);
-                                  const element = prev.find((element)=>element.qid==qid);
+                                setAnswers((prev) => {
+                                  const index = prev.findIndex(
+                                    (element) => element.qid == qid,
+                                  );
+                                  const element = prev.find(
+                                    (element) => element.qid == qid,
+                                  );
                                   if (index !== -1) {
-                                    const id = element.oid.findIndex((element)=>element==value.id);
-                                    if(id==-1){
+                                    const id = element.oid.findIndex(
+                                      (element) => element == value.id,
+                                    );
+                                    if (id == -1) {
                                       let updatedList = [...prev];
-                                      element.oid.push(value.id)
+                                      element.oid.push(value.id);
                                       updatedList[index] = element;
                                       return updatedList;
                                     }
                                   }
                                   return [...prev, answer];
-                                })
+                                });
                                 const new_state = requiredFlag.filter(
                                   (obj) => obj.id != val.id,
                                 );
@@ -661,7 +693,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                             disabled
                             id={`radio-${index}`}
                           ></input>
-  
+
                           {val.options.map((value, index) => (
                             <label htmlFor={`radio-${index}`} key={index}>
                               {value.id === val.answers[0].option
@@ -678,13 +710,11 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                       ) : (
                         <span> </span>
                       )}
-  
                     </div>
-                        : null}{" "}
-              </li>
-            ))
-          }
-          < div className="flex text-lg justify-between px-8 mb-4">
+                  ) : null}{" "}
+                </li>
+              ))}
+          <div className="flex text-lg justify-between px-8 mb-4">
             <button
               onClick={(e) => previousCard(e)}
               className={`${currentCardId === 0 ? "bg-gray2" : "bg-logingreen"} p-4 w-fit`}
@@ -693,17 +723,15 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
             </button>
             <button
               onClick={(e) => nextCard(e)}
-            // className={`${currentIndex === activity && activity.card_ids.length - 1 ? "bg-gray2" : requiredFlag.length === 0 ? "bg-logingreen" : "bg-gray2"} p-4 w-fit`}
+              // className={`${currentIndex === activity && activity.card_ids.length - 1 ? "bg-gray2" : requiredFlag.length === 0 ? "bg-logingreen" : "bg-gray2"} p-4 w-fit`}
             >
               <span>
-                {currentCardId === activity.total_cards - 1
-                  ? "Finish"
-                  : "Next"}
+                {currentCardId === activity.total_cards - 1 ? "Finish" : "Next"}
               </span>
             </button>
           </div>
         </ul>
-      </div >
+      </div>
       <ul className="w-1/2 gap-y-4">
         <li className="Tip of the dayflex w-[95%] my-2 flex-wrap h-[25vh] shadow-2xl overflow-y-hidden rounded-xl bg-logingreen px-8 py-4">
           <div className="w-full flex justify-between items-center border-dotted border-b-2">
@@ -782,6 +810,6 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           </span>
         </li>
       </ul>
-    </main >
+    </main>
   );
 };

@@ -1,13 +1,14 @@
 import logo from "./assets/logo.svg";
 import {
-  CalendarToday,
-  CollectionsBookmark,
-  ExitToApp,
-  HomeSharp,
-  Message,
-  Notifications,
+  Bell,
+  Bookmark,
+  Calendar,
+  House,
+  LogOut,
+  Mail,
   Settings,
-} from "@material-ui/icons";
+} from "lucide-react";
+import { ExitIcon } from "@radix-ui/react-icons";
 
 export const Sidebar = ({ activeElement, setActiveElement }) => {
   const inactiveElementStyle = {
@@ -25,7 +26,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
       </div>
       <div className="options flex flex-col mt-24 justify-start gap-y-6 ">
         <div className="flex justify-start gap-x-8 items-center">
-          <HomeSharp style={activeElementStyle} height={60} />
+          <House style={activeElementStyle} height={60} />
           <div className="text-left text-[24px] text-gray3 ">Home</div>
         </div>
 
@@ -33,7 +34,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
           className="flex justify-start gap-x-8 items-center"
           style={inactiveElementStyle}
         >
-          <Message height={60} />
+          <Mail height={60} />
 
           <div className="text-left text-[24px] text-gray3">Inbox</div>
         </div>
@@ -42,7 +43,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
           className="flex justify-start gap-x-8 items-center"
           style={inactiveElementStyle}
         >
-          <CollectionsBookmark height={60} />
+          <Bookmark height={60} />
 
           <div className="text-left text-[24px] text-gray3">Saved</div>
         </div>
@@ -51,7 +52,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
           className="flex justify-start gap-x-8 items-center"
           style={inactiveElementStyle}
         >
-          <CalendarToday height={60} />
+          <Calendar height={60} />
           <div className="text-left text-[24px] text-gray3">Calendar</div>
         </div>
 
@@ -59,7 +60,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
           className="flex justify-start gap-x-8 items-center"
           style={inactiveElementStyle}
         >
-          <Notifications height={60} />
+          <Bell height={60} />
 
           <div className="text-left text-[24px] text-gray3">Notifications</div>
         </div>
@@ -75,7 +76,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
           className="flex justify-start gap-x-8 items-center hover:text-red-400"
           style={inactiveElementStyle}
         >
-          <ExitToApp height={60} />
+          <LogOut height={60} />
           <div className="text-left text-[24px] text-gray3 hover:text-red-400">
             Logout
           </div>
