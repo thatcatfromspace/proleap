@@ -8,9 +8,20 @@ import {
   Mail,
   Settings,
 } from "lucide-react";
-import { ExitIcon } from "@radix-ui/react-icons";
+import Cookies from "universal-cookie";
+import { useNavigate } from "react-router-dom";
 
+const cookies = new Cookies();
+function removeAllCookies() {
+  cookies.remove("accessToken");
+  cookies.remove("batchId");
+  cookies.remove("batchName");
+  cookies.remove("refreshToken");
+  cookies.remove("userId");
+  cookies.remove("userName");
+}
 export const Sidebar = ({ activeElement, setActiveElement }) => {
+  const navigate = useNavigate();
   const inactiveElementStyle = {
     color: "#F4F6FC",
     opacity: "0.4",
@@ -25,13 +36,13 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
         <img src={logo} alt="" className="w-[75%]" height="40" />
       </div>
       <div className="options flex flex-col mt-24 justify-start gap-y-6 ">
-        <div className="flex justify-start gap-x-8 items-center">
+        <div className="flex justify-start gap-x-4 items-center">
           <House style={activeElementStyle} height={60} />
           <div className="text-left text-[24px] text-gray3 ">Home</div>
         </div>
 
         <div
-          className="flex justify-start gap-x-8 items-center"
+          className="flex justify-start gap-x-4 items-center"
           style={inactiveElementStyle}
         >
           <Mail height={60} />
@@ -40,7 +51,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
         </div>
 
         <div
-          className="flex justify-start gap-x-8 items-center"
+          className="flex justify-start gap-x-4 items-center"
           style={inactiveElementStyle}
         >
           <Bookmark height={60} />
@@ -49,7 +60,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
         </div>
 
         <div
-          className="flex justify-start gap-x-8 items-center"
+          className="flex justify-start gap-x-4 items-center"
           style={inactiveElementStyle}
         >
           <Calendar height={60} />
@@ -57,7 +68,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
         </div>
 
         <div
-          className="flex justify-start gap-x-8 items-center"
+          className="flex justify-start gap-x-4 items-center"
           style={inactiveElementStyle}
         >
           <Bell height={60} />
@@ -66,18 +77,24 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
         </div>
 
         <div
-          className="flex justify-start gap-x-8 items-center"
+          className="flex justify-start gap-x-4 items-center"
           style={inactiveElementStyle}
         >
           <Settings height={60} />
           <div className="text-left text-[24px] text-gray3">Settings</div>
         </div>
         <div
-          className="flex justify-start gap-x-8 items-center hover:text-red-400"
+          className="flex justify-start gap-x-4 items-center cursor-pointer"
           style={inactiveElementStyle}
         >
-          <LogOut height={60} />
-          <div className="text-left text-[24px] text-gray3 hover:text-red-400">
+          <LogOut height={60} stroke="red" />
+          <div
+            className="text-left text-[24px] text-[#FF0000]"
+            onClick={() => {
+              removeAllCookies();
+              navigate("/");
+            }}
+          >
             Logout
           </div>
         </div>

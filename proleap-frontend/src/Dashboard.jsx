@@ -4,7 +4,17 @@ import axios from "axios";
 import { Cards } from "./Cards";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
-export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }) => {
+import { useCookies } from "react-cookie";
+import { AES, enc } from "crypto-js";
+
+import Cookies from "universal-cookie";
+export const Dashboard = ({
+  uid,
+  userName,
+  isAuthenticated,
+  batchID,
+  batchname,
+}) => {
   const [activeElement, setActiveElement] = useState(0);
   const isAuth = isAuthenticated;
   const userId = uid;
@@ -18,25 +28,44 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
     setActiveElement(itemId);
   };
   useEffect(() => {
-    axios.get("https://type.fit/api/quotes").then((res)=>{
+    axios.get("https://type.fit/api/quotes").then((res) => {
       console.log(res.data);
       const id = Math.floor(Math.random() * res.data.length);
       setTipOfTheDay(res.data[id]);
-    })
+    });
   }, []);
+
   const [currentCardId, setCurrentCardId] = useState();
   const [showActivity, setShowActivity] = useState(true);
   const [showCard, setShowCard] = useState(false);
   const [activity, setActivity] = useState(null);
   const [currentActivity, setCurrentActivity] = useState();
-  const [tipOfTheDay,setTipOfTheDay] = useState();
+  const [tipOfTheDay, setTipOfTheDay] = useState();
+  const cookies = new Cookies();
+
+  let decryptedAccessToken = AES.decrypt(
+    cookies.get("accessToken"),
+    import.meta.env.VITE_AES_SECRET,
+  ).toString(enc.Utf8);
+
+  let decryptedRefreshToken = AES.decrypt(
+    cookies.get("refreshToken"),
+    import.meta.env.VITE_AES_SECRET,
+  ).toString(enc.Utf8);
+
   useEffect(() => {
     if (batchID != null) {
       console.log(batchId);
       axios
         .get(
-          `http://${import.meta.env.VITE_API_URL
+          `http://${
+            import.meta.env.VITE_API_URL
           }/apis/user/${userId}/batch/${batchId}/activities/`,
+          {
+            headers: {
+              Authorization: `Bearer ${decryptedAccessToken}`,
+            },
+          },
         )
         .then((res) => {
           let response = res.data;
@@ -53,6 +82,33 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
       setShowCard(true);
     }
   }, [setShowActivity, currentCardId, setCurrentCardId]);
+
+  useEffect(() => {
+    setInterval(() => {
+      axios
+        .get(
+          `http://${import.meta.env.VITE_API_URL}/apis/verify/${decryptedAccessToken}`,
+        )
+        .then((res) => {
+          if (res.status !== 200) {
+            axios
+              .post(
+                `http://${import.meta.env.VITE_API_URL}/apis/token/refresh`,
+                {
+                  refresh: decryptedRefreshToken,
+                },
+              )
+              .then(() =>
+                cookies.set(
+                  "accessToken",
+                  AES.encrypt(res.data.access, import.meta.env.VITE_AES_SECRET),
+                ),
+              );
+          }
+        });
+    }, 6000);
+  }, []);
+
   return isAuth === true ? (
     <main className="h-screen w-screen bg-primary overflow-x-hidden text-[30px]  ">
       <Sidebar
@@ -71,32 +127,35 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
               <ul className="flex flex-wrap justify-start gap-[2%] w-full  ">
                 {activity != null
                   ? activity.activities.map((val, index) => (
-                    <button
-                      onClick={(e) => {
-                        setCurrentCardId(val.current_card);
-                        setCurrentActivity(val);
-                        // console.log(val.card_ids.indexOf(val.current_card));
-                        setShowActivity(false);
-                        setShowCard(true);
-                      }}
-                      className={`flex w-[49%] my-2 flex-col flex-wrap h-[25vh] shadow-2xl   px-8 py-4 border-b-[12px] rounded-xl 
-                        ${val.user_activity_progress == null ?
-                          "border-[#000]" :
-                          val.user_activity_progress.status === "IN_PROGRESS" ?
-                            "border-[#FFC943]" :
-                            "border-logingreen"} `}
-                      key={index}
-                    >
-                      <li className="">
-                        <span className="text-[30px] justify-start flex">
-                          {val.name}
-                        </span>
-                        <span className="text- justify-start text-[18.54px] flex">
-                          {val.desc}
-                        </span>
-                      </li>
-                    </button>
-                  ))
+                      <button
+                        onClick={(e) => {
+                          setCurrentCardId(val.current_card);
+                          setCurrentActivity(val);
+                          // console.log(val.card_ids.indexOf(val.current_card));
+                          setShowActivity(false);
+                          setShowCard(true);
+                        }}
+                        className={`flex w-[49%] my-2 flex-col flex-wrap h-[25vh] shadow-2xl   px-8 py-4 border-b-[12px] rounded-xl 
+                        ${
+                          val.user_activity_progress == null
+                            ? "border-[#000]"
+                            : val.user_activity_progress.status ===
+                                "IN_PROGRESS"
+                              ? "border-[#FFC943]"
+                              : "border-logingreen"
+                        } `}
+                        key={index}
+                      >
+                        <li className="">
+                          <span className="text-[30px] justify-start flex">
+                            {val.name}
+                          </span>
+                          <span className="text- justify-start text-[18.54px] flex">
+                            {val.desc}
+                          </span>
+                        </li>
+                      </button>
+                    ))
                   : null}
 
                 <li className=" About you flex w-[49%] my-2 flex-wrap h-[25vh] shadow-2xl overflow-y-hidden border-b-[12px] rounded-xl border-[#BABBBF] px-8 py-4">
@@ -118,11 +177,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                     </svg>
                   </div>
                   <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Accusamus doloremque exercitationem ea eum perferendis
-                    placeat aliquam sed laboriosam obcaecati sit hic cupiditate
-                    ipsum voluptatum unde sapiente at, nulla consectetur
-                    quaerat?
+                    {/* TODO: things go here */}
                   </span>
                 </li>
 
@@ -190,11 +245,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                     </svg>
                   </div>
                   <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Accusamus doloremque exercitationem ea eum perferendis
-                    placeat aliquam sed laboriosam obcaecati sit hic cupiditate
-                    ipsum voluptatum unde sapiente at, nulla consectetur
-                    quaerat?
+                    {/* TODO: things go here */}
                   </span>
                 </li>
 
@@ -216,8 +267,8 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                       />
                     </svg>
                   </div>
-                  <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-                  {tipOfTheDay!=null?tipOfTheDay.text:""}
+                  <span className="text-[18.54px] max-h-[25vh] justify-start flex mt-5">
+                    {tipOfTheDay != null ? tipOfTheDay.text : ""}
                   </span>
                 </li>
 
@@ -240,10 +291,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                     </svg>
                   </div>
                   <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Dolor dolore voluptates, a nulla tempora debitis explicabo
-                    perferendis? Consectetur aut voluptatibus, error omnis
-                    placeat atque dolore amet architecto dolor voluptates alias.
+                    {/* TODO: things go here */}
                   </span>
                 </li>
                 <li className="Deadlines flex w-[49%] my-2 flex-wrap h-[25vh] shadow-2xl overflow-y-hidden border-b-[12px] rounded-xl border-[#FF8900] px-8 py-4">
@@ -265,11 +313,7 @@ export const Dashboard = ({ uid, userName, isAuthenticated, batchID, batchname }
                     </svg>
                   </div>
                   <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Accusamus doloremque exercitationem ea eum perferendis
-                    placeat aliquam sed laboriosam obcaecati sit hic cupiditate
-                    ipsum voluptatum unde sapiente at, nulla consectetur
-                    quaerat?
+                    {/* TODO: deadlines go here */}
                   </span>
                 </li>
               </ul>

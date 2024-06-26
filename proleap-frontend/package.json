@@ -18,6 +18,7 @@
     "chart.js": "^4.4.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "crypto-js": "^4.2.0",
     "fix": "^0.0.6",
     "lodash.clonedeep": "^4.5.0",
     "lottie-react": "^2.4.0",
@@ -32,6 +33,7 @@
     "tailwind-merge": "^2.2.1",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",
+    "universal-cookie": "^7.1.4",
     "uuid": "^9.0.1",
     "yup": "^1.2.0"
   },

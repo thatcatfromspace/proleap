@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Cookies from "universal-cookie";
+import { AES, enc } from "crypto-js";
 
 export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
   const navigate = useNavigate();
@@ -18,9 +20,16 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
       is_true: false,
     },
   ]);
+  const cookies = new Cookies();
   const [answers, setAnswers] = useState([]);
   // const [questionsId, setQuestionId] = useState([]);
   const [requiredFlag, setRequiredFlag] = useState([]);
+
+  let decryptedAccessToken = AES.decrypt(
+    cookies.get("accessToken"),
+    import.meta.env.VITE_AES_SECRET,
+  ).toString(enc.Utf8);
+
   useEffect(() => {
     if (activity != null && userId != null) {
       axios
@@ -28,6 +37,11 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
           `http://${
             import.meta.env.VITE_API_URL
           }/apis/user/${uid}/activity/${activity.id}/`,
+          {
+            headers: {
+              Authorization: `Bearer ${decryptedAccessToken}`,
+            },
+          },
         )
         .then((res) => {
           setCards(res.data.cards);
@@ -752,10 +766,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
             </svg>
           </div>
           <span className="text-[18.54px] max-h-[25vh] justify-start flex mb-1 ">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-            dolore voluptates, a nulla tempora debitis explicabo perferendis?
-            Consectetur aut voluptatibus, error omnis placeat atque dolore amet
-            architecto dolor voluptates alias.
+            {/* TODO: add stuff here */}
           </span>
         </li>
 
@@ -778,10 +789,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
             </svg>
           </div>
           <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-            dolore voluptates, a nulla tempora debitis explicabo perferendis?
-            Consectetur aut voluptatibus, error omnis placeat atque dolore amet
-            architecto dolor voluptates alias.
+            {/* TODO: things go here */}
           </span>
         </li>
         <li className="Deadlines flex w-[95%] my-2 flex-wrap h-[25vh] shadow-2xl overflow-y-hidden border-b-[12px] rounded-xl border-[#FF8900] px-8 py-4">
@@ -803,10 +811,7 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
             </svg>
           </div>
           <span className="text-[18.54px] max-h-[25vh] justify-start flex ">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus
-            doloremque exercitationem ea eum perferendis placeat aliquam sed
-            laboriosam obcaecati sit hic cupiditate ipsum voluptatum unde
-            sapiente at, nulla consectetur quaerat?
+            {/* TODO: stuff goes here, mind the gap */}
           </span>
         </li>
       </ul>

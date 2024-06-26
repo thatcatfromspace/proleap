@@ -1,11 +1,11 @@
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { Link } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import logo from "./assets/PL_Logo_RGB.png";
+import { AES } from "crypto-js";
 
 const schema = yup.object().shape({
   email: yup.string().required("Name is a required field.").email(),
@@ -16,7 +16,7 @@ const schema = yup.object().shape({
     .required("Password is a required field."),
 });
 
-export const LoginForm = ({ setCookie, setUserId, setUserName }) => {
+export const LoginForm = ({ setCookie }) => {
   const [toggleValue, setValue] = useState(false);
   const toggleSetValue = () => {
     setValue(!toggleValue);
@@ -64,17 +64,27 @@ export const LoginForm = ({ setCookie, setUserId, setUserName }) => {
             secure: true,
             sameSite: true,
           });
-          setCookie("accessToken", response.access, {
+          const encryptedAccessToken = AES.encrypt(
+            response.access,
+            import.meta.env.VITE_AES_SECRET,
+          );
+          setCookie("accessToken", encryptedAccessToken.toString(), {
             path: "/",
             secure: true,
           });
-          setCookie("refreshToken", response.refresh, {
+
+          const encryptedRefreshToken = AES.encrypt(
+            response.refresh,
+            import.meta.env.VITE_AES_SECRET,
+          );
+          setCookie("refreshToken", encryptedRefreshToken.toString(), {
             path: "/",
             secure: true,
           });
           navigate("/dashboard");
         }
-      }).catch((err)=>{
+      })
+      .catch((err) => {
         console.log(err);
       });
   };
