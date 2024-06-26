@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .permissions import OrganizerOnlyAllPermission, UserOnlyAllPermission  
+from .permissions import IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -20,6 +20,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from .swagger_schemas import activity_answer_response_schema
 from .swagger_schemas import batch_activity_response_schema
+from django.contrib.auth.hashers import make_password
+
 
 
 from .models import User, Batch, UserBatch, Activity, UserActivity, Card, UserCard, Question, Option, Answer
@@ -32,14 +34,26 @@ from .serializers import (
 
 
 class UserListAPIView(APIView):
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [AllowAny()]
-        return [AllowAny()]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of users",
         responses={200: UserSerializer(many=True)},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def get(self, request):
         try:
@@ -54,6 +68,20 @@ class UserListAPIView(APIView):
         operation_description="Create a new user",
         request_body=UserSerializer,
         responses={201: UserSerializer, 400: 'Bad Request'},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def post(self, request, format=None):
         try:
@@ -69,8 +97,6 @@ class UserListAPIView(APIView):
                     'access': str(refresh.access_token),
                     'user': serializer.data
                 }, status=status.HTTP_201_CREATED)
-                # return Response(serializer.data,
-                # status=status.HTTP_201_CREATED)
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST)
@@ -83,28 +109,19 @@ class UserListAPIView(APIView):
 
 
 class UserDetailAPIView(APIView):
-    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
+    
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            return [IsAuthenticatedVerifiedActive, IsAdmin]
+        return [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+    
 
     @swagger_auto_schema(
         operation_description="Retrieve a user by ID",
-        responses={200: UserSerializer, 404: 'Not Found'},
-        manual_parameters=[
-            openapi.Parameter(
-                'access_token',
-                openapi.IN_QUERY,
-                description='JWT access token',
-                type=openapi.TYPE_STRING,
-                required=True,
-            ),
-        ],
+        responses={200: UserSerializer, 404: 'Not Found'}
     )
     def get(self, request, id):
-        access_token = request.query_params.get('access_token', '')
-
         try:
-            validated_token = AccessToken(access_token)
-            print(validated_token.payload)  # Log the token payload
-            user_id = validated_token['user_id']
             user = User.objects.get(pk=id)
             serializer = UserSerializer(user)
             return Response(serializer.data)
@@ -155,7 +172,8 @@ class UserDetailAPIView(APIView):
 
 
 class SignInAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsRegularUser]
 
     @swagger_auto_schema(
         tags=[
@@ -209,7 +227,7 @@ class SignInAPIView(APIView):
         except UserBatch.DoesNotExist:
             return JsonResponse({'error': 'UserBatch not found'}, status=404)
 
-        if (user.password == password):  # TODO: Use user.check_password()
+        if (user.check_password(password)):
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
@@ -225,7 +243,8 @@ class SignInAPIView(APIView):
 
 
 class BatchListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(operation_description="List all batches",
                          responses={200: BatchSerializer(many=True),
@@ -265,7 +284,9 @@ class BatchListCreateAPIView(APIView):
 
 
 class BatchDetailAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+
 
     @swagger_auto_schema(
         operation_description="Retrieve a batch by ID",
@@ -337,7 +358,7 @@ class BatchDetailAPIView(APIView):
 
 class UserBatchListCreateAPIView(APIView):
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="List all user batches", responses={
@@ -376,7 +397,8 @@ class UserBatchListCreateAPIView(APIView):
 
 class UserBatchDetailAPIView(APIView):
 
-    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+
 
     @swagger_auto_schema(
         operation_description="Retrieve a user batch by ID",
@@ -448,7 +470,8 @@ class UserBatchDetailAPIView(APIView):
 
 class BatchUserListAPIView(APIView):
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+
 
     @swagger_auto_schema(tags=['batches'],
                          operation_description="List all users of a batch",
@@ -510,7 +533,8 @@ class BatchUserListAPIView(APIView):
 
 
 class ActivityListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(operation_description="List all activities",
                          responses={200: ActivitySerializer(many=True),
@@ -550,7 +574,8 @@ class ActivityListCreateAPIView(APIView):
 
 
 class ActivityDetailAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a activity by ID",
@@ -621,7 +646,8 @@ class ActivityDetailAPIView(APIView):
 
 
 class UserActivityListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+    
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="List all user activities", responses={
@@ -663,7 +689,8 @@ class UserActivityListCreateAPIView(APIView):
 
 
 class UserActivityDetailAPIView(APIView):
-    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a user activity by ID",
@@ -735,7 +762,8 @@ class UserActivityDetailAPIView(APIView):
 
 
 class CardListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(operation_description="List all cards",
                          responses={200: CardSerializer(many=True),
@@ -775,7 +803,8 @@ class CardListCreateAPIView(APIView):
 
 
 class CardDetailAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a card by ID",
@@ -847,7 +876,8 @@ class CardDetailAPIView(APIView):
 
 
 class UserCardListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(operation_description="List all user card",
                          responses={200: UserCardSerializer(many=True),
@@ -887,7 +917,8 @@ class UserCardListCreateAPIView(APIView):
 
 
 class UserCardDetailAPIView(APIView):
-    permission_classes = [AllowAny]  # Todo: Authenticate to ISauth
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a user card by ID",
@@ -958,7 +989,8 @@ class UserCardDetailAPIView(APIView):
 
 
 class QuestionListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(operation_description="List all questions",
                          responses={200: QuestionSerializer(many=True),
@@ -998,7 +1030,8 @@ class QuestionListCreateAPIView(APIView):
 
 
 class QuestionDetailAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a question by ID",
@@ -1069,7 +1102,8 @@ class QuestionDetailAPIView(APIView):
 
 
 class OptionListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(operation_description="List all options",
                          responses={200: OptionSerializer(many=True),
@@ -1109,7 +1143,8 @@ class OptionListCreateAPIView(APIView):
 
 
 class OptionDetailAPIView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve an option by ID",
@@ -1180,7 +1215,12 @@ class OptionDetailAPIView(APIView):
 
 
 class AnswerListCreateAPIView(APIView):
-    permission_classes = [AllowAny]
+    
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+        return [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    
 
     @swagger_auto_schema(operation_description="List all answers",
                          responses={200: AnswerSerializer(many=True),
@@ -1224,7 +1264,8 @@ class AnswerListCreateAPIView(APIView):
 
 
 class AnswerDetailAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
 
     @swagger_auto_schema(
         operation_description="Retrieve an answer by ID",
@@ -1261,23 +1302,11 @@ class AnswerDetailAPIView(APIView):
             answer = Answer.objects.get(pk=pk)
             serializer = AnswerSerializer(answer, data=request.data)
             if serializer.is_valid():
+                if 'password' in serializer.validated_data:
+                    new_password = serializer.validated_data['password']
+                    if not answer.check_password(new_password):
+                        serializer.validated_data['password'] = make_password(new_password)
                 serializer.save()
-
-                # Check if all questions in the card are answered
-                # question = serializer.instance.question
-                # card = question.card
-                # questions_in_card = card.questions.all()
-
-                # user_answers = Answer.objects.filter(
-                #     user=serializer.instance.user,
-                #     question__in=questions_in_card
-                # ).distinct('question').count()
-
-                # if user_answers == questions_in_card.count():
-                #     user_card = UserCard.objects.get(user=serializer.instance.user, card=card)
-                #     user_card.completed_questions = user_answers
-                #     user_card.save(update_fields=['completed_questions'])
-
                 return Response(serializer.data)
             return Response(
                 serializer.errors,
@@ -1288,6 +1317,7 @@ class AnswerDetailAPIView(APIView):
         except Exception as e:
             return Response({'error': str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     @swagger_auto_schema(
         operation_description="Delete an answer by ID",
@@ -1311,7 +1341,9 @@ class AnswerDetailAPIView(APIView):
 
 
 class UserRegister(APIView):
-    permission_classes = [AllowAny]
+    
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+
     parser_classes = (MultiPartParser, FormParser)
 
     @swagger_auto_schema(
@@ -1373,14 +1405,15 @@ class UserRegister(APIView):
                     is_verified=False
                 )
 
+                user.set_password('string')
+                user.save()
+
                 # Generate JWT token for verification
                 token_payload = {
                     'user_id': user.id,
                     'email': user.email,
                     'exp': datetime.now() + timedelta(hours=24)  # Token valid for 24 hours
                 }
-                # TODO: make the token assigned to a user in outstanding token
-                # table
                 token = jwt.encode(
                     token_payload,
                     settings.SECRET_KEY,
@@ -1424,7 +1457,8 @@ class UserRegister(APIView):
 
 class VerifyEmail(APIView):
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+
 
     def get(self, request, token):
         try:
@@ -1465,7 +1499,9 @@ class VerifyEmail(APIView):
 
 
 class UserCardQuestionProgress(APIView):
-    permission_classes = [AllowAny]
+    
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+
 
     @swagger_auto_schema(
         operation_description="Retrieve the latest card and user progress for a specific activity.",
@@ -1539,7 +1575,8 @@ class UserCardQuestionProgress(APIView):
 
 
 class UserActivityProgressList(APIView):
-    permission_classes = [IsAuthenticated, UserOnlyAllPermission]    
+    
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
 
     @swagger_auto_schema(
         operation_description="Retrieve the user's activity progress for a batch.",

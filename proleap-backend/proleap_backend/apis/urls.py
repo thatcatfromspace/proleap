@@ -66,7 +66,6 @@ urlpatterns = [
         name='schema-redoc'),
 
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    # #TODO: Fix why token pair wont work - Fixed Just had to hash and store.
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('signin/', SignInAPIView.as_view(), name='auth'),
 

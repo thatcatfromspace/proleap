@@ -24,10 +24,11 @@ class UserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 
-        return self.create_user(email, username, password, **extra_fields)
+        return self.create_user(email, username, password, role=Role.ADMIN, **extra_fields)
 
 
 class Role(models.TextChoices):
+    ADMIN = 'admin', _('Admin')
     USER = "USER", _("User")
     ORGANIZER = "ORGANIZER", _("Organizer")
 
