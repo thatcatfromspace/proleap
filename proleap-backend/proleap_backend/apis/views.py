@@ -173,7 +173,7 @@ class UserDetailAPIView(APIView):
 
 class SignInAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsRegularUser]
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         tags=[
@@ -1457,7 +1457,7 @@ class UserRegister(APIView):
 
 class VerifyEmail(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+    permission_classes = [AllowAny]
 
 
     def get(self, request, token):
