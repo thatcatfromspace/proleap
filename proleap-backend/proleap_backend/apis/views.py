@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from .permissions import OrganizerOnlyAllPermission, UserOnlyAllPermission  
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -61,6 +62,8 @@ class UserListAPIView(APIView):
             if serializer.is_valid():
                 user = serializer.save()
                 refresh = RefreshToken.for_user(user)
+                user.set_password(serializer.validated_data['password'])
+                user.save()
                 return Response({
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
@@ -1221,7 +1224,7 @@ class AnswerListCreateAPIView(APIView):
 
 
 class AnswerDetailAPIView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Retrieve an answer by ID",
@@ -1536,7 +1539,7 @@ class UserCardQuestionProgress(APIView):
 
 
 class UserActivityProgressList(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, UserOnlyAllPermission]    
 
     @swagger_auto_schema(
         operation_description="Retrieve the user's activity progress for a batch.",
@@ -1544,9 +1547,30 @@ class UserActivityProgressList(APIView):
             200: batch_activity_response_schema,
             400: 'Bad Request',
             404: 'Not Found',
-            500: 'Internal Server Error'})
+            500: 'Internal Server Error'
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
+        )
     def get(self, request, user_id, batch_id):
         try:
+            if (request.user.id != user_id):
+                return Response(
+                    {'error': 'Invalid Authentication Credentials'} 
+                )
+            
             latest_user_activity = UserActivity.objects.filter(
                 user_id=user_id, activity__batch_id=batch_id).order_by('-updated_at').first()
             first_user_activity = Activity.objects.filter(
