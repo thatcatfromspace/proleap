@@ -252,20 +252,21 @@ class SignInAPIView(APIView):
                     })),
             400: 'Invalid input',
             401: 'Unauthorized'},
-            manual_parameters=[
-        openapi.Parameter(
-                name='Authorization',
-                in_=openapi.IN_HEADER,
-                description="Bearer token",
-                type=openapi.TYPE_STRING,
-                required=True,
-                examples={
-                    'Bearer Token': {
-                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
-                    }
-                }
-            )
-        ],)
+        #     manual_parameters=[
+        # openapi.Parameter(
+        #         name='Authorization',
+        #         in_=openapi.IN_HEADER,
+        #         description="Bearer token",
+        #         type=openapi.TYPE_STRING,
+        #         required=True,
+        #         examples={
+        #             'Bearer Token': {
+        #                 'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+        #             }
+        #         }
+        #     )
+        # ],
+        )
     def post(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -1538,7 +1539,9 @@ class AnswerDetailAPIView(APIView):
 
 class UserRegister(APIView):
     
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    # permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [AllowAny]
+
 
     parser_classes = (MultiPartParser, FormParser)
 
@@ -1597,11 +1600,11 @@ class UserRegister(APIView):
                     name=name,
                     role=role,
                     gender=gender,
+                    password='proleap',
                     phoneNumber=phone_number,
                     is_verified=False
                 )
 
-                user.set_password('string')
                 user.save()
 
                 # Generate JWT token for verification
