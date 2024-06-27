@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .permissions import IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser
+from .permissions import IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser, IsAdminOrOrganizer, IsAdminOrOrganizerOrUser
 from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -35,7 +35,7 @@ from .serializers import (
 
 class UserListAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of users",
@@ -113,7 +113,7 @@ class UserDetailAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'DELETE':
             return [IsAuthenticatedVerifiedActive, IsAdmin]
-        return [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+        return [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
     
 
     @swagger_auto_schema(
@@ -215,7 +215,7 @@ class UserDetailAPIView(APIView):
 
 class SignInAPIView(APIView):
 
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]     # TODO: Atleast provide basic security
 
     @swagger_auto_schema(
         tags=[
@@ -301,7 +301,7 @@ class SignInAPIView(APIView):
 
 class BatchListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(operation_description="List all batches",
                          responses={200: BatchSerializer(many=True),
@@ -370,7 +370,7 @@ class BatchListCreateAPIView(APIView):
 
 class BatchDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
 
     @swagger_auto_schema(
@@ -485,7 +485,7 @@ class BatchDetailAPIView(APIView):
 
 class UserBatchListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="List all user batches", responses={
@@ -552,7 +552,7 @@ class UserBatchListCreateAPIView(APIView):
 
 class UserBatchDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
 
     @swagger_auto_schema(
@@ -667,7 +667,7 @@ class UserBatchDetailAPIView(APIView):
 
 class BatchUserListAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
 
     @swagger_auto_schema(tags=['batches'],
@@ -731,7 +731,7 @@ class BatchUserListAPIView(APIView):
 
 class ActivityListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(operation_description="List all activities",
                          responses={200: ActivitySerializer(many=True),
@@ -772,7 +772,7 @@ class ActivityListCreateAPIView(APIView):
 
 class ActivityDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a activity by ID",
@@ -844,7 +844,7 @@ class ActivityDetailAPIView(APIView):
 
 class UserActivityListCreateAPIView(APIView):
     
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="List all user activities", responses={
@@ -887,7 +887,7 @@ class UserActivityListCreateAPIView(APIView):
 
 class UserActivityDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a user activity by ID",
@@ -960,7 +960,7 @@ class UserActivityDetailAPIView(APIView):
 
 class CardListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(operation_description="List all cards",
                          responses={200: CardSerializer(many=True),
@@ -1001,7 +1001,7 @@ class CardListCreateAPIView(APIView):
 
 class CardDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a card by ID",
@@ -1074,7 +1074,7 @@ class CardDetailAPIView(APIView):
 
 class UserCardListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(operation_description="List all user card",
                          responses={200: UserCardSerializer(many=True),
@@ -1115,7 +1115,7 @@ class UserCardListCreateAPIView(APIView):
 
 class UserCardDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a user card by ID",
@@ -1187,7 +1187,7 @@ class UserCardDetailAPIView(APIView):
 
 class QuestionListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(operation_description="List all questions",
                          responses={200: QuestionSerializer(many=True),
@@ -1228,7 +1228,7 @@ class QuestionListCreateAPIView(APIView):
 
 class QuestionDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve a question by ID",
@@ -1300,7 +1300,7 @@ class QuestionDetailAPIView(APIView):
 
 class OptionListCreateAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(operation_description="List all options",
                          responses={200: OptionSerializer(many=True),
@@ -1341,7 +1341,7 @@ class OptionListCreateAPIView(APIView):
 
 class OptionDetailAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
     @swagger_auto_schema(
         operation_description="Retrieve an option by ID",
@@ -1415,8 +1415,8 @@ class AnswerListCreateAPIView(APIView):
     
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
-        return [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
+            return [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
+        return [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
     
 
     @swagger_auto_schema(operation_description="List all answers",
@@ -1462,7 +1462,7 @@ class AnswerListCreateAPIView(APIView):
 
 class AnswerDetailAPIView(APIView):
     
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
 
     @swagger_auto_schema(
         operation_description="Retrieve an answer by ID",
@@ -1539,8 +1539,7 @@ class AnswerDetailAPIView(APIView):
 
 class UserRegister(APIView):
     
-    # permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
 
 
     parser_classes = (MultiPartParser, FormParser)
@@ -1605,6 +1604,7 @@ class UserRegister(APIView):
                     is_verified=False
                 )
 
+                user.set_password('string')
                 user.save()
 
                 # Generate JWT token for verification
@@ -1700,7 +1700,7 @@ class VerifyEmail(APIView):
 
 class UserCardQuestionProgress(APIView):
     
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
 
 
     @swagger_auto_schema(
@@ -1776,7 +1776,7 @@ class UserCardQuestionProgress(APIView):
 
 class UserActivityProgressList(APIView):
     
-    permission_classes = [IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser]
+    permission_classes = [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
 
     @swagger_auto_schema(
         operation_description="Retrieve the user's activity progress for a batch.",

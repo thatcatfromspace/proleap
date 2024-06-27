@@ -8,6 +8,9 @@ class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
         if not email:
             raise ValueError(_('The Email field must be set'))
+        if not username:
+            raise ValueError(_('The Username field must be set'))
+        
         email = self.normalize_email(email)
         user = self.model(email=email, username=username, **extra_fields)
         # Set password using Django's built-in method
