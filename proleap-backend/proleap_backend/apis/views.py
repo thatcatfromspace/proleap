@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsAuthenticatedVerifiedActive, IsAdmin, IsOrganizer, IsRegularUser
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.core.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg import openapi
@@ -1683,15 +1683,16 @@ class VerifyEmail(APIView):
         except UserBatch.DoesNotExist:
             return JsonResponse({'error': 'UserBatch not found'}, status=404)
 
-        response_data = {
-            'message': 'Email verification successful',
-            'user_id': user.id,
-            'username': user.username,
-            'batch_id': batch_id,
-            'batch_name': batch_name
-        }
+        # response_data = {
+        #     'message': 'Email verification successful',
+        #     'user_id': user.id,
+        #     'username': user.username,
+        #     'batch_id': batch_id,
+        #     'batch_name': batch_name
+        # }
 
-        return JsonResponse(response_data)
+        # return JsonResponse(response_data)
+        return redirect('http://127.0.0.1:3000/')
 
 
 class UserCardQuestionProgress(APIView):

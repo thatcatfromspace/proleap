@@ -189,7 +189,7 @@ SIMPLE_JWT = {
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
-    "TOKEN_USER_CLASS": "apis.models.User",  # TODO: This must come auth.user table
+    "TOKEN_USER_CLASS": "apis.models.User",
 
     "JTI_CLAIM": "jti",
 
@@ -213,6 +213,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+PASSWORD_RESET_TIMEOUT = 172800     # 2 days
 
 
 CORS_ALLOW_ALL_ORIGINS = True
