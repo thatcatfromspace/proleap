@@ -118,7 +118,21 @@ class UserDetailAPIView(APIView):
 
     @swagger_auto_schema(
         operation_description="Retrieve a user by ID",
-        responses={200: UserSerializer, 404: 'Not Found'}
+        responses={200: UserSerializer, 404: 'Not Found'},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ]
     )
     def get(self, request, id):
         try:
@@ -139,6 +153,20 @@ class UserDetailAPIView(APIView):
         operation_description="Update a user by ID",
         request_body=UserSerializer,
         responses={200: UserSerializer, 400: 'Bad Request', 404: 'Not Found'},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def put(self, request, id):
         try:
@@ -160,6 +188,20 @@ class UserDetailAPIView(APIView):
     @swagger_auto_schema(
         operation_description="Delete a user by ID",
         responses={204: 'No Content', 404: 'Not Found'},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def delete(self, request, id):
         try:
@@ -173,7 +215,7 @@ class UserDetailAPIView(APIView):
 
 class SignInAPIView(APIView):
 
-    permission_classes = [IsAuthenticatedVerifiedActive, IsRegularUser]
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         tags=[
@@ -209,7 +251,21 @@ class SignInAPIView(APIView):
                             description='User ID'),
                     })),
             400: 'Invalid input',
-            401: 'Unauthorized'})
+            401: 'Unauthorized'},
+            manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],)
     def post(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -248,7 +304,21 @@ class BatchListCreateAPIView(APIView):
 
     @swagger_auto_schema(operation_description="List all batches",
                          responses={200: BatchSerializer(many=True),
-                                    500: openapi.Response(description='Internal Server Error')})
+                                    500: openapi.Response(description='Internal Server Error')},
+                        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],)
     def get(self, request):
         try:
             batches = Batch.objects.all()
@@ -265,7 +335,21 @@ class BatchListCreateAPIView(APIView):
             201: BatchSerializer,
             400: openapi.Response(description='Invalid input'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def post(self, request):
         try:
@@ -294,7 +378,21 @@ class BatchDetailAPIView(APIView):
             200: BatchSerializer,
             404: openapi.Response(description='Not Found'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def get(self, request, pk):
         try:
@@ -316,7 +414,21 @@ class BatchDetailAPIView(APIView):
             400: openapi.Response(description='Invalid input'),
             404: openapi.Response(description='Not Found'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def put(self, request, pk):
         try:
@@ -341,7 +453,21 @@ class BatchDetailAPIView(APIView):
             204: openapi.Response(description='No Content'),
             404: openapi.Response(description='Not Found'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def delete(self, request, pk):
         try:
@@ -364,7 +490,21 @@ class UserBatchListCreateAPIView(APIView):
         operation_description="List all user batches", responses={
             200: UserBatchSerializer(
                 many=True), 500: openapi.Response(
-                description='Internal Server Error')})
+                description='Internal Server Error')},
+                manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],)
     def get(self, request):
         try:
             user_batches = UserBatch.objects.all()
@@ -377,7 +517,21 @@ class UserBatchListCreateAPIView(APIView):
     @swagger_auto_schema(
         operation_description="Create a new user batch",
         request_body=UserBatchSerializer,
-        responses={201: UserBatchSerializer, 400: 'Invalid input'}
+        responses={201: UserBatchSerializer, 400: 'Invalid input'},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def post(self, request):
         try:
@@ -406,7 +560,21 @@ class UserBatchDetailAPIView(APIView):
             200: UserBatchSerializer,
             404: openapi.Response(description='Not Found'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def get(self, request, pk):
         try:
@@ -428,7 +596,21 @@ class UserBatchDetailAPIView(APIView):
             400: openapi.Response(description='Invalid input'),
             404: openapi.Response(description='Not Found'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def put(self, request, pk):
         try:
@@ -453,7 +635,21 @@ class UserBatchDetailAPIView(APIView):
             204: openapi.Response(description='No Content'),
             404: openapi.Response(description='Not Found'),
             500: openapi.Response(description='Internal Server Error')
-        }
+        },
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
     )
     def delete(self, request, pk):
         try:
