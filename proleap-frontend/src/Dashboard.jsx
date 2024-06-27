@@ -83,31 +83,31 @@ export const Dashboard = ({
     }
   }, [setShowActivity, currentCardId, setCurrentCardId]);
 
-  useEffect(() => {
-    setInterval(() => {
-      axios
-        .get(
-          `http://${import.meta.env.VITE_API_URL}/apis/verify/${decryptedAccessToken}`,
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            axios
-              .post(
-                `http://${import.meta.env.VITE_API_URL}/apis/token/refresh`,
-                {
-                  refresh: decryptedRefreshToken,
-                },
-              )
-              .then(() =>
-                cookies.set(
-                  "accessToken",
-                  AES.encrypt(res.data.access, import.meta.env.VITE_AES_SECRET),
-                ),
-              );
-          }
-        });
-    }, 6000);
-  }, []);
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     axios
+  //       .get(
+  //         `http://${import.meta.env.VITE_API_URL}/apis/verify/${decryptedAccessToken}`,
+  //       )
+  //       .then((res) => {
+  //         if (res.status !== 200) {
+  //           axios
+  //             .post(
+  //               `http://${import.meta.env.VITE_API_URL}/apis/token/refresh`,
+  //               {
+  //                 refresh: decryptedRefreshToken,
+  //               },
+  //             )
+  //             .then(() =>
+  //               cookies.set(
+  //                 "accessToken",
+  //                 AES.encrypt(res.data.access, import.meta.env.VITE_AES_SECRET),
+  //               ),
+  //             );
+  //         }
+  //       });
+  //   }, 6000);
+  // }, []);
 
   return isAuth === true ? (
     <main className="h-screen w-screen bg-primary overflow-x-hidden text-[30px]  ">
