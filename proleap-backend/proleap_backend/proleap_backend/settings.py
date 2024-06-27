@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from datetime import timedelta
 import os
 from pathlib import Path
+from django.conf import settings
 from dotenv import load_dotenv
 
-from django.conf import settings
 
 # Load environment variables from .env file
 load_dotenv()
