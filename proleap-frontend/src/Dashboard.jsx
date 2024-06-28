@@ -4,7 +4,6 @@ import axios from "axios";
 import { Cards } from "./Cards";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
-import { useCookies } from "react-cookie";
 import { AES, enc } from "crypto-js";
 
 import Cookies from "universal-cookie";

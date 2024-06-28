@@ -5,8 +5,13 @@ import Cookies from "universal-cookie";
 import { AES, enc } from "crypto-js";
 import { useCookies } from "react-cookie";
 
-
-export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShowCard }) => {
+export const Cards = ({
+  uid,
+  Activity,
+  isAuthenticated,
+  setShowActivity,
+  setShowCard,
+}) => {
   const navigate = useNavigate();
   const activity = Activity;
   const [currentCardId, setCurrentCardId] = useState();
@@ -27,7 +32,6 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
   // const [questionsId, setQuestionId] = useState([]);
   const [requiredFlag, setRequiredFlag] = useState([]);
   const isAuth = isAuthenticated;
-
 
   let decryptedAccessToken = AES.decrypt(
     cookies.get("accessToken"),
@@ -58,8 +62,10 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
   useEffect(() => {
     if (currentCardId != null) {
       const tempArray = [];
-      setCurrentCard(cards.find((element) => element.id == currentCardId));
-      const current_card = cards.find((element) => element.id == currentCardId);
+      setCurrentCard(cards.find((element) => element.id === currentCardId));
+      const current_card = cards.find(
+        (element) => element.id === currentCardId,
+      );
       for (let i = 0; i < current_card.questions.length; i++) {
         let errorObj = {
           id: current_card.questions[i].id,
@@ -135,7 +141,7 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
                 cookies.get("accessToken"),
                 import.meta.env.VITE_AES_SECRET,
               ).toString(enc.Utf8);
-            
+
               let decryptedRefreshToken = AES.decrypt(
                 cookies.get("refreshToken"),
                 import.meta.env.VITE_AES_SECRET,
@@ -149,7 +155,6 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
                     headers: {
                       Authorization: `Bearer ${decryptedAccessToken}`,
                     },
-                  
                   },
                 )
                 .then((res) => {
@@ -177,7 +182,6 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
                     headers: {
                       Authorization: `Bearer ${decryptedAccessToken}`,
                     },
-                  
                   },
                 )
                 .then((res) => {
@@ -205,7 +209,6 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
                     headers: {
                       Authorization: `Bearer ${decryptedAccessToken}`,
                     },
-                  
                   },
                 )
                 .then((res) => {
@@ -225,7 +228,6 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
                     headers: {
                       Authorization: `Bearer ${decryptedAccessToken}`,
                     },
-                  
                   },
                 )
                 .then((res) => {
@@ -770,17 +772,21 @@ export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShow
               ))}
           <div className="flex text-lg justify-between px-8 mb-4">
             <button
-              onClick={(e) => previousCard(e)}
-              className={`${currentCardId === 0 ? "bg-gray2" : "bg-logingreen"} p-4 w-fit`}
+              onClick={(e) => {
+                previousCard(e);
+                console.log(currentCardId);
+              }}
+              className={`${currentCardId === 1 ? "bg-gray2 invisible" : "bg-secondary"} p-4 w-fit rounded-2xl`}
             >
               <span>Previous</span>
             </button>
             <button
               onClick={(e) => nextCard(e)}
+              className="bg-logingreen w-fit p-4 rounded-2xl"
               // className={`${currentIndex === activity && activity.card_ids.length - 1 ? "bg-gray2" : requiredFlag.length === 0 ? "bg-logingreen" : "bg-gray2"} p-4 w-fit`}
             >
               <span>
-                {currentCardId === activity.total_cards - 1 ? "Finish" : "Next"}
+                {currentCardId === activity.total_cards - 1 ? "Next" : "Finish"}
               </span>
             </button>
           </div>

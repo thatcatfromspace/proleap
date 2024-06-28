@@ -35,7 +35,7 @@ export const Sidebar = ({ activeElement, setActiveElement }) => {
       <div className="mt-16 flex justify-start">
         <img src={logo} alt="" className="w-[75%]" height="40" />
       </div>
-      <div className="options flex flex-col mt-24 justify-start gap-y-6 ">
+      <div className="options flex flex-col mt-24 justify-start gap-y-2 ">
         <div className="flex justify-start gap-x-4 items-center">
           <House style={activeElementStyle} height={60} />
           <div className="text-left text-[24px] text-gray3 ">Home</div>
