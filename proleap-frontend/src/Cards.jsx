@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "universal-cookie";
 import { AES, enc } from "crypto-js";
+import { useCookies } from "react-cookie";
 
-export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
+
+export const Cards = ({ uid, Activity, isAuthenticated, setShowActivity, setShowCard }) => {
   const navigate = useNavigate();
   const activity = Activity;
   const [currentCardId, setCurrentCardId] = useState();
@@ -24,6 +26,8 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
   const [answers, setAnswers] = useState([]);
   // const [questionsId, setQuestionId] = useState([]);
   const [requiredFlag, setRequiredFlag] = useState([]);
+  const isAuth = isAuthenticated;
+
 
   let decryptedAccessToken = AES.decrypt(
     cookies.get("accessToken"),
@@ -125,10 +129,28 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
               //       console.log("RADIO BUTTON");
               //       console.log(obj);
               //       // TODO: remove activity and card
+              const cookies = new Cookies();
+
+              let decryptedAccessToken = AES.decrypt(
+                cookies.get("accessToken"),
+                import.meta.env.VITE_AES_SECRET,
+              ).toString(enc.Utf8);
+            
+              let decryptedRefreshToken = AES.decrypt(
+                cookies.get("refreshToken"),
+                import.meta.env.VITE_AES_SECRET,
+              ).toString(enc.Utf8);
+
               axios
                 .post(
                   `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
                   obj,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${decryptedAccessToken}`,
+                    },
+                  
+                  },
                 )
                 .then((res) => {
                   console.log(res.data);
@@ -151,6 +173,12 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                 .post(
                   `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
                   obj,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${decryptedAccessToken}`,
+                    },
+                  
+                  },
                 )
                 .then((res) => {
                   console.log(res.data);
@@ -173,6 +201,12 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                 .post(
                   `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
                   obj,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${decryptedAccessToken}`,
+                    },
+                  
+                  },
                 )
                 .then((res) => {
                   console.log(res.data);
@@ -187,6 +221,12 @@ export const Cards = ({ uid, Activity, setShowActivity, setShowCard }) => {
                 .post(
                   `http://${import.meta.env.VITE_API_URL}/apis/answers/`,
                   obj,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${decryptedAccessToken}`,
+                    },
+                  
+                  },
                 )
                 .then((res) => {
                   // console.log(res.data);

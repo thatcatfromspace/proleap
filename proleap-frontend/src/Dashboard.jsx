@@ -325,6 +325,7 @@ export const Dashboard = ({
               Activity={currentActivity}
               setShowActivity={setShowActivity}
               setShowCard={setShowCard}
+              isAuthenticated={isAuth}
             />
           ) : null}
         </div>
