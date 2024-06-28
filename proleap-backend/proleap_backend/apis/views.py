@@ -113,7 +113,7 @@ class UserDetailAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'DELETE':
             return [IsAuthenticatedVerifiedActive, IsAdmin]
-        return [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
+        return [IsAuthenticatedVerifiedActive(), IsAdminOrOrganizerOrUser()]
     
 
     @swagger_auto_schema(
@@ -1415,8 +1415,8 @@ class AnswerListCreateAPIView(APIView):
     
     def get_permissions(self):
         if self.request.method == 'POST':
-            return [IsAuthenticatedVerifiedActive, IsAdminOrOrganizerOrUser]
-        return [IsAuthenticatedVerifiedActive, IsAdminOrOrganizer]
+            return [IsAuthenticatedVerifiedActive(), IsAdminOrOrganizerOrUser()]
+        return [IsAuthenticatedVerifiedActive(), IsAdminOrOrganizer()]
     
 
     @swagger_auto_schema(operation_description="List all answers",
@@ -1709,7 +1709,22 @@ class UserCardQuestionProgress(APIView):
             200: activity_answer_response_schema,
             400: 'Bad Request',
             404: 'Not Found',
-            500: 'Internal Server Error'})
+            500: 'Internal Server Error'},
+        manual_parameters=[
+        openapi.Parameter(
+                name='Authorization',
+                in_=openapi.IN_HEADER,
+                description="Bearer token",
+                type=openapi.TYPE_STRING,
+                required=True,
+                examples={
+                    'Bearer Token': {
+                        'value': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE5MzQ1MzYzLCJpYXQiOjE3MTkzNDE3NjMsImp0aSI6IjRkNTc0NjY3ZjQyZjQxZDE5NzcyOWNiMzg5MTIyYjU2IiwidXNlcl9pZCI6M30.ygESn-3hdcd-3x1HH0z9Rdpx2J3WZpce8PI3OZlRfRQ'
+                    }
+                }
+            )
+        ],
+        )
     def get(self, request, user_id, activity_id):
         try:
             latest_user_card = UserCard.objects.filter(
