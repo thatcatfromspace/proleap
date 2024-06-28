@@ -51,7 +51,7 @@ DEBUG = env.bool('DEBUG', default=False)
 TEMPLATE_DEBUG = DEBUG
 
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['proleap.in', 'ewhizard.works'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['proleap.in', 'ewhizard.works', '.vercal.app'])
 
 
 # Application definition
