@@ -82,6 +82,7 @@ class IsOrganizerOrUser(IsAuthenticatedVerifiedActive):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.role in [Role.ORGANIZER, Role.USER]
 
+
 class IsAdminOrOrganizerOrUser(IsAuthenticatedVerifiedActive):
     """
     Allows access to admin, organizer, or regular users.
