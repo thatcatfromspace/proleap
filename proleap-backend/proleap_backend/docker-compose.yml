@@ -9,6 +9,8 @@ services:
       - "8000:8000"
     depends_on:
       - proleap-pgsql
+        # condition: service_healthy
+
     # environment:
     #   - EMAIL_HOST=smtp.gmail.com
     #   - EMAIL_PORT=587
@@ -24,6 +26,16 @@ services:
       POSTGRES_PASSWORD: root
     volumes:
       - pgdata:/var/lib/postgresql/data # For persistant storage
+
+  # test:
+  #     build: .
+  #     command: ["coverage", "run", "manage.py", "test"]
+  #     volumes:
+  #       - .:/app
+  #     depends_on:
+  #       - proleap-pgsql
+  #     env_file:
+  #       - ./.env
 
 volumes:
   pgdata:
