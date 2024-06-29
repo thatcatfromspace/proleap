@@ -36,7 +36,7 @@ export const LoginForm = ({ setCookie }) => {
     };
     axios
       .post(
-        `http://${import.meta.env.VITE_API_URL}/apis/signin/`,
+        `https://${import.meta.env.VITE_API_URL}/apis/signin/`,
         obj,
         axiosConfig,
       )
@@ -99,7 +99,7 @@ export const LoginForm = ({ setCookie }) => {
           strokeWidth="1.5"
           viewBox="0 0 24 24"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="https://www.w3.org/2000/svg"
           color="#000000"
         >
           <path
@@ -127,7 +127,7 @@ export const LoginForm = ({ setCookie }) => {
           strokeWidth="1.5"
           viewBox="0 0 24 24"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="https://www.w3.org/2000/svg"
           color="#000000"
         >
           <path
@@ -192,7 +192,7 @@ export const LoginForm = ({ setCookie }) => {
             <div className="flex font-poppins text-logingreen items-center hover:underline cursor-pointer">
               {"Forgot password?"} &nbsp;
               <svg
-                xmlns="http://www.w3.org/2000/svg"
+                xmlns="https://www.w3.org/2000/svg"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"

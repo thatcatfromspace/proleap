@@ -33,7 +33,7 @@ export const ResetPassword = ({ setCookie, setUserId, setUserName }) => {
 
   const loginUser = (obj) => {
     axios
-      .post(`http://${import.meta.env.VITE_API_URL}/api/reset_password`, obj)
+      .post(`https://${import.meta.env.VITE_API_URL}/api/reset_password`, obj)
       .then((res) => {
         console.log(res.data);
         // const response = res.data;
@@ -64,7 +64,7 @@ export const ResetPassword = ({ setCookie, setUserId, setUserName }) => {
           strokeWidth="1.5"
           viewBox="0 0 24 24"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="https://www.w3.org/2000/svg"
           color="#000000"
         >
           <path
@@ -92,7 +92,7 @@ export const ResetPassword = ({ setCookie, setUserId, setUserName }) => {
           strokeWidth="1.5"
           viewBox="0 0 24 24"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="https://www.w3.org/2000/svg"
           color="#000000"
         >
           <path
